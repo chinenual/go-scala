@@ -12,18 +12,9 @@ import (
   github.com/chinenual/go-scala scala
   )
 ...
-var s scala.Scale
-var k scala.KeyboardMapping
-var t scala.Tuning
-if s,err = scala.ReadSCLFile("./my-scale.scl"); err != nil {
-   fmt.Printf("ERROR! %v\n", err)
-}
-if k,err = scala.ReadKBMFile("./my-mapping.kbm"); err != nil {
-   fmt.Printf("ERROR! %v\n", err)
-}
-if t,err = scala.CreateTuningFromSCLAndKBD(s,k) err != nil {
-   fmt.Printf("ERROR! %v\n", err)
-}
+s,_ := scala.ReadSCLFile("./my-scale.scl")
+k,_ := scala.ReadKBMFile("./my-mapping.kbm")
+t,_ := scala.CreateTuningFromSCLAndKBD(s,k)
 fmt.Printf(""The frequency of C4 and A4 are %f and %f\n",
     t.FrequencyForMidiNote(60)
     t.FrequencyForMidiNote(69))
