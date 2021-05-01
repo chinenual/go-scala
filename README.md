@@ -9,13 +9,13 @@ An example of using the API:
 
 ```go
 import (
-  github.com/chinenual/go-scala scala
-  )
+  "github.com/chinenual/go-scala" scala
+)
 ...
 s,_ := scala.ReadSCLFile("./my-scale.scl")
 k,_ := scala.ReadKBMFile("./my-mapping.kbm")
 t,_ := scala.CreateTuningFromSCLAndKBD(s,k)
-fmt.Printf(""The frequency of C4 and A4 are %f and %f\n",
+fmt.Printf("The frequency of C4 and A4 are %f and %f\n",
     t.FrequencyForMidiNote(60)
     t.FrequencyForMidiNote(69))
 ```
