@@ -1,5 +1,6 @@
 package scala
 
+
 // The Tuning type is the primary place where you will interact with this library.
 // It is constructed for a scale and mapping and then gives you the ability to
 // determine frequencies across and beyond the midi keyboard. Since modulation

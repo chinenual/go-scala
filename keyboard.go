@@ -2,6 +2,27 @@ package scala
 
 import "io"
 
+// KeyboardMapping represents a KBM file. In most cases, the salient
+// features are the tuningConstantNote and tuningFrequency, which allow you to
+// pick a fixed note in the midi keyboard when retuning. The KBM file can also
+// remap individual keys to individual points in a scale, which here is done with the
+// keys vector.
+//
+// Just as with Scale, the rawText member contains the text of the KBM file used.
+type KeyboardMapping struct {
+	Count              int
+	FirstMidi          int
+	LastMidi           int
+	MiddleNote         int
+	TuningConstantNote int
+	TuningFrequency    float64
+	TuningPitch        float64 // pitch = frequency / MIDI_0_FREQ
+	OctaveDegrees      int
+	Keys               []int // rather than an 'x' we use a '-1' for skipped keys
+	RawText            string
+	Name               string
+}
+
 // ReadKBMStream returns a KeyboardMapping from a KBM input stream
 func ReadKBMStream(rdr io.Reader) (kbm KeyboardMapping, err error) {
 	return
