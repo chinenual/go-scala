@@ -1,7 +1,7 @@
 package scala
 
 import (
-	"gotest.tools/assert"
+	"gotest.tools/v3/assert"
 	"testing"
 )
 // Load a 12 tone standard tuning
