@@ -55,7 +55,7 @@ type Scale struct {
 func toneFromString(line string, lineno int) (tone Tone, err error) {
 	if strings.Contains(line, ".") {
 		tone.Type = ToneCents
-		if tone.Cents,err = strconv.ParseFloat(line, 64); err != nil {
+		if tone.Cents,err = strconv.ParseFloat(strings.TrimSpace(line), 64); err != nil {
 			err = errors.Wrapf(err, "Error parsing scale cent: \"%s\", line %d", line, lineno)
 			return
 		}
@@ -64,7 +64,7 @@ func toneFromString(line string, lineno int) (tone Tone, err error) {
 		tone.Type = ToneRatio
 		split := strings.Split(line,"/")
 		if split != nil && len(split) == 1 {
-			if v, err = strconv.ParseInt(split[0], 10, 32); err != nil {
+			if v, err = strconv.ParseInt(strings.TrimSpace(split[0]), 10, 32); err != nil {
 				err = errors.Errorf("Error parsing scale ratio numerator: \"%s\", line %d", split[0], lineno)
 				return
 			}
@@ -74,12 +74,12 @@ func toneFromString(line string, lineno int) (tone Tone, err error) {
 			err = errors.Errorf("Error parsing scale ratio: \"%s\", line %d", line, lineno)
 			return
 		} else {
-			if v, err = strconv.ParseInt(split[0], 10, 32); err != nil {
+			if v, err = strconv.ParseInt(strings.TrimSpace(split[0]), 10, 32); err != nil {
 				err = errors.Errorf("Error parsing scale ratio numerator: \"%s\", line %d", split[0], lineno)
 				return
 			}
 			tone.RatioN = int(v)
-			if v, err = strconv.ParseInt(split[1], 10, 32); err != nil {
+			if v, err = strconv.ParseInt(strings.TrimSpace(split[1]), 10, 32); err != nil {
 				err = errors.Errorf("Error parsing scale ratio numerator: \"%s\", line %d", split[1], lineno)
 				return
 			}
@@ -115,7 +115,10 @@ func ReadSCLStream(rdr io.Reader) (scale Scale, err error) {
 		scale.RawText = scale.RawText + "\n" + line
 		lineno++
 		line = strings.TrimRight(line, "\t ")
-		if state == readNote && len(line) == 0 && line[0] == '!' {
+
+		//fmt.Printf("DEBUG: l:%d state:%d line:\"%s\":  %#v",lineno,state,line,scale)
+
+		if (state == readNote && len(line) == 0) ||  line[0] == '!' {
 			continue
 		}
 		var v int64
@@ -124,7 +127,7 @@ func ReadSCLStream(rdr io.Reader) (scale Scale, err error) {
 			scale.Description = line
 			state = readCount
 		case readCount:
-			if v, err = strconv.ParseInt(line,10,32); err != nil  {
+			if v, err = strconv.ParseInt(strings.TrimSpace(line),10,32); err != nil  {
 				err = errors.Wrapf(err, "Error parsing Count: \"%s\", line %d", line,lineno)
 				return
 			}
