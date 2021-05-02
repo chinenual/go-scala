@@ -213,7 +213,7 @@ func TestInternalConstraintsSCLAndKBM(tt *testing.T) {
 			assert.NilError(tt, err)
 			k, err = ReadKBMFile(testFile(kbmFname))
 			assert.NilError(tt, err)
-			
+
 			if k.OctaveDegrees > s.Count {
 				// don't test this combo; trap it below as an error case
 				continue;
@@ -259,11 +259,117 @@ func TestInternalConstraintsSCLAndKBMMisatched(tt *testing.T) {
 }
 
 // Several Sample Scales - Non Monotonic 12 note
+func TestSampleScalesNonMonotonic12Note(tt *testing.T) {
+	var s Scale
+	var err error
+	var t Tuning
+	s,err = ReadSCLFile(testFile("12-shuffled.scl"))
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	assert.Equal(tt, s.Count, 12)
+	assert.Equal(tt, "", approxEqual(margin, t.LogScaledFrequencyForMidiNote(60), 5.0))
+	order := []int{0, 2, 1, 3, 5, 4, 6, 7, 8, 10, 9, 11, 12}
+	l60 := t.LogScaledFrequencyForMidiNote(60)
+	for i,oi := range order {
+		li := t.LogScaledFrequencyForMidiNote(60+i)
+		assert.Equal(tt,"", approxEqual(margin, li-l60, float64(oi)/12.0), "order %d",oi)
+	}
+}
+
 // Several Sample Scales - 31 edo
+func TestSampleScales31Edo(tt *testing.T) {
+	var s Scale
+	var err error
+	var t Tuning
+	s,err = ReadSCLFile(testFile("31edo.scl"))
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	assert.Equal(tt, s.Count, 31)
+	assert.Equal(tt, "", approxEqual(margin, t.LogScaledFrequencyForMidiNote(60), 5.0))
+	prev := t.LogScaledFrequencyForMidiNote(60)
+	for i := 1; i<31; i++ {
+		curr := t.LogScaledFrequencyForMidiNote(60+i)
+		assert.Equal(tt,"", approxEqual(margin, curr-prev, 1.0/31.0), "i %d",i)
+		prev = curr
+	}
+}
+
 // Several Sample Scales - ED3-17
+func TestSampleScalesEd317(tt *testing.T) {
+	var s Scale
+	var err error
+	var t Tuning
+	s,err = ReadSCLFile(testFile("ED3-17.scl"))
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	assert.Equal(tt, s.Count, 17)
+	assert.Equal(tt, "", approxEqual(margin, t.LogScaledFrequencyForMidiNote(60), 5.0))
+	prev := t.LogScaledFrequencyForMidiNote(60)
+	for i := 1; i<40; i++ {
+		curr := t.LogScaledFrequencyForMidiNote(60+i)
+		assert.Equal(tt,"", approxEqual(margin, math.Pow(2.0, 17.0*(curr-prev)), 3.0), "i %d",i)
+		prev = curr
+	}
+}
+
 // Several Sample Scales - ED4-17
+func TestSampleScalesEd417(tt *testing.T) {
+	var s Scale
+	var err error
+	var t Tuning
+	s,err = ReadSCLFile(testFile("ED4-17.scl"))
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	assert.Equal(tt, s.Count, 17)
+	assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(60), 5.0))
+	prev := t.LogScaledFrequencyForMidiNote(60)
+	for i := 1; i<40; i++ {
+		curr := t.LogScaledFrequencyForMidiNote(60+i)
+		assert.Equal(tt,"", approxEqual(1e-6, math.Pow(2.0, 17.0*(curr-prev)), 4.0), "i %d",i)
+		prev = curr
+	}
+}
+
 // Several Sample Scales - 6 exact
+func TestSampleScales6Exact(tt *testing.T) {
+	var s Scale
+	var err error
+	var t Tuning
+	s,err = ReadSCLFile(testFile("6-exact.scl"))
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	assert.Equal(tt, s.Count, 6)
+	assert.Equal(tt, "", approxEqual(1e-5, t.LogScaledFrequencyForMidiNote(60), 5.0))
+	knownValues := []float64{0, 0.22239,  0.41504, 0.58496, 0.73697, 0.87447, 1.0}
+	for i,v := range knownValues {
+		assert.Equal(tt,"", approxEqual(1e-5, t.LogScaledFrequencyForMidiNote(60+i),
+			t.LogScaledFrequencyForMidiNote(60) + v),"i %d",i)
+	}
+}
+
 // Several Sample Scales - Carlos Alpha (one step scale)
+func TestSampleScalesCarlosAlpha(tt *testing.T) {
+	var s Scale
+	var err error
+	var t Tuning
+	s,err = ReadSCLFile(testFile("carlos-alpha.scl"))
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	assert.Equal(tt, s.Count, 1)
+	assert.Equal(tt, "", approxEqual(1e-5, t.LogScaledFrequencyForMidiNote(60), 5.0))
+	diff := math.Pow( 2.0, 78.0 / 1200.0 )
+
+	for i:= 30; i<80; i++ {
+		assert.Equal(tt,"", approxEqual(1e-5, t.FrequencyForMidiNoteScaledByMidi0(i) * diff,
+			t.FrequencyForMidiNoteScaledByMidi0(i+1)),"i %d",i)
+	}
+}
 
 // Remapping frequency with non-12-length scales - 6 exact
 // Remapping frequency with non-12-length scales - 31 edo
