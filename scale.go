@@ -118,7 +118,7 @@ func ReadSCLStream(rdr io.Reader) (scale Scale, err error) {
 
 		//fmt.Printf("DEBUG: l:%d state:%d line:\"%s\":  %#v",lineno,state,line,scale)
 
-		if (state == readNote && len(line) == 0) ||  line[0] == '!' {
+		if (state == readNote && len(line) == 0) ||  (len(line)>0 && line[0] == '!') {
 			continue
 		}
 		var v int64
