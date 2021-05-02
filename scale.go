@@ -225,8 +225,8 @@ func evenDivisionOfSpanByM(span int, m int) (scale Scale, err error) {
 		err = errors.Errorf("You must divide the period into at least one step: M must be a positive number: %d", m)
 		return
 	}
-	buf := "! Automatically generated ED " + string(span) + "-" + string(m) + " scale\n"
-	buf += string(m) + "\n"
+	buf := "! Automatically generated ED " + strconv.Itoa(span) + "-" + strconv.Itoa(m) + " scale\n"
+	buf += strconv.Itoa(m) + "\n"
 	buf += "!\n"
 
 	topCents := 1200.0 * math.Log(float64(span)) / math.Log(2.0)
@@ -234,7 +234,7 @@ func evenDivisionOfSpanByM(span int, m int) (scale Scale, err error) {
 	for i := 0; i < m; i++ {
 		buf += fmt.Sprintf("%f\n", dCents * float64(i))
 	}
-	buf += string(span) + "/1\n"
+	buf += strconv.Itoa(span) + "/1\n"
 
 	if scale,err = ParseSCLData(buf); err != nil {
 		return

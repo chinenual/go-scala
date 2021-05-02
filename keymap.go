@@ -187,7 +187,7 @@ func tuneNoteTo(midiNote int, freq float64) (kbm KeyboardMapping, err error) {
 // startScaleOnAndTuneNoteTo generates a KBM where scaleStart is the note 0
 // of the scale, where midiNote is the tuned note, and where feq is the frequency
 func startScaleOnAndTuneNoteTo(scaleStart int, midiNote int, freq float64) (kbm KeyboardMapping, err error) {
-	buf := "! Automatically generated mapping, tuning note " + string(midiNote) + " to " + fmt.Sprintf("%f", freq) + " Hz\n"
+	buf := "! Automatically generated mapping, tuning note " + strconv.Itoa(midiNote) + " to " + fmt.Sprintf("%f", freq) + " Hz\n"
 	buf += "!\n"
 	buf += "! Size of map\n"
 	buf += "0\n"
@@ -195,10 +195,10 @@ func startScaleOnAndTuneNoteTo(scaleStart int, midiNote int, freq float64) (kbm 
 	buf += "0\n"
 	buf += "127\n"
 	buf += "! Middle note where the first entry in the scale is mapped.\n"
-	buf += string(scaleStart) + "\n"
+	buf += strconv.Itoa(scaleStart) + "\n"
 	buf += "! Reference note where frequency is fixed\n"
-	buf += string(midiNote) + "\n"
-	buf += "! Frequency for MIDI note " + string(midiNote) + "\n"
+	buf += strconv.Itoa(midiNote) + "\n"
+	buf += "! Frequency for MIDI note " + strconv.Itoa(midiNote) + "\n"
 	buf += fmt.Sprintf("%f", freq) + "\n"
 	buf += "! Scale degree for formal octave. This is am empty mapping, so:\n"
 	buf += "0\n"

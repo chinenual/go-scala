@@ -11,8 +11,10 @@ import (
 // Surge uses 1.0e-10 -- need to diagnose why my numbers are less precise
 const margin = 1.0e-6
 
+// HACK:
 // returns "" if equal, else a useful error message. intended to be called from assert.Equals("", approxEqual(...))
-// this allows go test to report the actual line of the test failure
+// this allows go test to report the actual line of the test failure, but still report the diff and not just the two
+// values
 func approxEqual(margin float64, v1 float64, v2 float64) (result string) {
 	diff := math.Abs(v1 - v2)
 	if diff > margin {
@@ -21,7 +23,7 @@ func approxEqual(margin float64, v1 float64, v2 float64) (result string) {
 	return
 }
 
-// normal Go convention would name the testing.T argument 't'.  But in order to keep the tests syntactically similar
+// Normal Go convention would name the *testing.T argument 't'.  But in order to keep the tests syntactically similar
 // to the Surge tests, which use 't' for the tuning variable, I'm using 'tt' in this file.
 
 // 12-intune tunes properly
@@ -62,4 +64,49 @@ func TestIdentity12IntuneDoubles(tt *testing.T) {
 			lc = nlc
 		}
 	}
+}
+
+// Scaling is constant
+func TestScalingIsConstant(tt *testing.T) {
+	var s Scale
+	var t Tuning
+	var err error
+	s,err = ReadSCLFile(testFile("12-intune.scl"))
+	assert.NilError(tt, err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt, err)
+
+	f60 := t.FrequencyForMidiNote(60)
+	fs60 := t.FrequencyForMidiNoteScaledByMidi0(60)
+	for i := -200; i < 200; i++ {
+		f := t.FrequencyForMidiNote(i)
+		fs := t.FrequencyForMidiNoteScaledByMidi0(i)
+		assert.Equal(tt, f/fs, f60/fs60)
+	}
+}
+
+// Simple Keyboard Remapping Tunes A69 - A440
+func TestKeyboardRemappingA69A440(tt *testing.T) {
+	var k KeyboardMapping
+	var t Tuning
+	var err error
+	k, err = tuneA69To(440.0)
+	assert.NilError(tt, err)
+	t,err = CreateTuningFromKBD(k)
+	assert.NilError(tt, err)
+	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(69), 440.0))
+	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(60), 261.625565301))
+}
+
+// Simple Keyboard Remapping Tunes A69 - A432
+func TestKeyboardRemappingA69A432(tt *testing.T) {
+	var k KeyboardMapping
+	var t Tuning
+	var err error
+	k, err = tuneA69To(432.0)
+	assert.NilError(tt, err)
+	t,err = CreateTuningFromKBD(k)
+	assert.NilError(tt, err)
+	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(69), 432.0))
+	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(60), 261.625565301 * 432.0 / 440.0))
 }
