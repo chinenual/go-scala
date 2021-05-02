@@ -405,6 +405,18 @@ func TestSampleScalesCarlosAlpha(tt *testing.T) {
 // Scale Position - Tuned, Mapped
 
 // Default KBM Constructor has Right Base - All Scales with Default KBM
+func TestDefaultKBMHasRightBase(tt *testing.T) {
+	for _,fname := range testSCLs {
+		var s Scale
+		var t Tuning
+		var err error
+		s,err = ReadSCLFile(testFile(fname))
+		assert.NilError(tt,err,fname)
+		t,err = CreateTuningFromSCL(s)
+		assert.NilError(tt,err,fname)
+		assert.Equal(tt, "", approxEqual(1e-6, t.FrequencyForMidiNoteScaledByMidi0(60), 32.0), fname)
+	}
+}
 
 // Different KBM period from Scale period - 31Edo with mean tone mapping
 func TestDiffPeriods32EdoMeanTone(tt *testing.T) {
