@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gotest.tools/v3/assert"
 	"math"
+	"math/rand"
 	"testing"
 )
 
@@ -109,4 +110,32 @@ func TestKeyboardRemappingA69A432(tt *testing.T) {
 	assert.NilError(tt, err)
 	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(69), 432.0))
 	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(60), 261.625565301 * 432.0 / 440.0))
+}
+
+// Random As Scale Consistently
+func TestRandomAsScaleConsistently(tt *testing.T) {
+	var ut Tuning
+	var err error
+	ut, err = CreateStandardTuning()
+	assert.NilError(tt, err)
+
+	for i := 0; i < 100; i++ {
+		fr := 400.0 + 80.0 * float64(rand.Int31() / math.MaxInt32)
+		var k KeyboardMapping
+		var t Tuning
+		k, err = tuneA69To(fr)
+		assert.NilError(tt, err)
+		t, err = CreateTuningFromKBD(k)
+		assert.NilError(tt, err)
+		assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(69), fr), "i==%d", i)
+		assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(60), 261.625565301  * fr / 440.0), "i==%d", i)
+
+		ldiff := t.LogScaledFrequencyForMidiNote(69) - ut.LogScaledFrequencyForMidiNote(69)
+		ratio := t.FrequencyForMidiNote(69) / ut.FrequencyForMidiNote(69)
+
+		for j := -200; j < 200; j++ {
+			assert.Equal(tt, "", approxEqual(margin, t.LogScaledFrequencyForMidiNote(j) - ut.LogScaledFrequencyForMidiNote(j), ldiff), "i==%d, j==%d", i, j)
+			assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(j) / ut.FrequencyForMidiNote(j), ratio), "i==%d, j==%d", i, j)
+		}
+	}
 }
