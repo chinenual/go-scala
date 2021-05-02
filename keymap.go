@@ -206,3 +206,17 @@ func startScaleOnAndTuneNoteTo(scaleStart int, midiNote int, freq float64) (kbm 
 	kbm, err = ParseKBMData(buf)
 	return
 }
+
+func standardKeyboardMapping() (kbm KeyboardMapping, err error) {
+	freq := Midi0Freq * 32.0
+	kbm,err = ParseKBMData(`! Default KBM file
+0
+0
+127
+60
+60
+` + fmt.Sprintf("%f", freq) + `
+0
+`)
+	return
+}
