@@ -115,6 +115,11 @@ func CreateTuningFromSCLAndKBM(s Scale, k KeyboardMapping) (tuning Tuning, err e
 		err = errors.Errorf("Unable to tune to a scale with no notes. Your scale provided 0 notes.")
 		return
 	}
+	// From the KBM Spec: When not all scale degrees need to be mapped, the size of the map can be smaller than the size of the scale.
+	if k.OctaveDegrees > s.Count {
+		err = errors.Errorf("Unable to apply mapping of size %d to smaller scale of size %d", k.OctaveDegrees, s.Count)
+		return
+	}
 	var pitches [numPrecomputed]float64
 
 	posPitch0 := 256 + k.TuningConstantNote
@@ -213,7 +218,7 @@ func CreateTuningFromSCLAndKBM(s Scale, k KeyboardMapping) (tuning Tuning, err e
 					rounds = rotations
 					thisRound = cm - 1
 					if thisRound < 0 {
-						thisRound = (k.OctaveDegrees - 1) % s.Count
+						thisRound = k.OctaveDegrees - 1
 						rounds--
 					}
 				} else {

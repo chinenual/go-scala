@@ -208,13 +208,20 @@ func TestInternalConstraintsSCLAndKBM(tt *testing.T) {
 			var s Scale
 			var t Tuning
 			var err error
-			fmt.Printf("DEBUG: test %s %s\n", sclFname,kbmFname)
+			//fmt.Printf("DEBUG: test %s %s\n", sclFname,kbmFname)
 			s, err = ReadSCLFile(testFile(sclFname))
 			assert.NilError(tt, err)
 			k, err = ReadKBMFile(testFile(kbmFname))
 			assert.NilError(tt, err)
+			
+			if k.OctaveDegrees > s.Count {
+				// don't test this combo; trap it below as an error case
+				continue;
+			}
+
 			t, err = CreateTuningFromSCLAndKBM(s,k)
 			assert.NilError(tt, err)
+
 			for i := 0; i < 127; i++ {
 				assert.Equal(tt, t.FrequencyForMidiNote(i), t.FrequencyForMidiNoteScaledByMidi0(i)*Midi0Freq, "scl:%s, kbm:%s", sclFname, kbmFname)
 				assert.Equal(tt, t.FrequencyForMidiNoteScaledByMidi0(i), math.Pow(2.0, t.LogScaledFrequencyForMidiNote(i)), "scl:%s, kbm:%s", sclFname, kbmFname)
@@ -224,6 +231,32 @@ func TestInternalConstraintsSCLAndKBM(tt *testing.T) {
 }
 
 // Did not import the Spanish locale tests.  Revisit this.
+
+// Internal Constraints between Measures -- Mappings bigger than Scales Throw
+func TestInternalConstraintsSCLAndKBMMisatched(tt *testing.T) {
+	testedAtLeastOne := false
+	for _,sclFname := range testSCLs {
+		for _, kbmFname := range testKBMs {
+			var k KeyboardMapping
+			var s Scale
+			var err error
+			//fmt.Printf("DEBUG: test %s %s\n", sclFname,kbmFname)
+			s, err = ReadSCLFile(testFile(sclFname))
+			assert.NilError(tt, err)
+			k, err = ReadKBMFile(testFile(kbmFname))
+			assert.NilError(tt, err)
+
+			if k.OctaveDegrees <= s.Count {
+				// don't test this combo; we only want to test the error cases
+				continue;
+			}
+			testedAtLeastOne = true
+			_, err = CreateTuningFromSCLAndKBM(s,k)
+			assert.ErrorContains(tt, err, "Unable to apply mapping of size","scl:%s, kbm:%s", sclFname, kbmFname)
+		}
+	}
+	assert.Assert(tt, testedAtLeastOne)
+}
 
 // Several Sample Scales - Non Monotonic 12 note
 // Several Sample Scales - 31 edo
