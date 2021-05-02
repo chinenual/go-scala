@@ -4,5 +4,6 @@ go 1.14
 
 require (
 	github.com/pkg/errors v0.9.1
+	gotest.tools v2.2.0+incompatible
 	gotest.tools/v3 v3.0.3
 )
