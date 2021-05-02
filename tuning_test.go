@@ -407,9 +407,60 @@ func TestSampleScalesCarlosAlpha(tt *testing.T) {
 // Default KBM Constructor has Right Base - All Scales with Default KBM
 
 // Different KBM period from Scale period - 31Edo with mean tone mapping
-// Different KBM period from Scale period - Perfect 5th UnMapped
-// Different KBM period from Scale period - Perfect 5th 07 mapping
+func TestDiffPeriods32EdoMeanTone(tt *testing.T) {
+	var s Scale
+	var k KeyboardMapping
+	var t Tuning
+	var err error
+	s,err = ReadSCLFile(testFile("31edo.scl"))
+	assert.NilError(tt,err)
+	k,err = ReadKBMFile(testFile("31edo_meantone.kbm"))
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCLAndKBM(s,k)
+	assert.NilError(tt,err)
 
+	assert.Equal(tt, "", approxEqual(1e-6, t.FrequencyForMidiNote(69), 440.0))
+	assert.Equal(tt, "", approxEqual(1e-6, t.FrequencyForMidiNote(69+12), 880.0))
+}
+
+
+// Different KBM period from Scale period - Perfect 5th UnMapped
+func TestDiffPeriodsPerfect5thUnmapped(tt *testing.T) {
+	var s Scale
+	var t Tuning
+	var err error
+	s,err = ReadSCLFile(testFile("12-ET-P5.scl"))
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+
+	for i := 60-36; i<127; i+=12 {
+		f := t.FrequencyForMidiNote(i)
+		f5 := t.FrequencyForMidiNote(i+7)
+		assert.Equal(tt, "", approxEqual(1e-6, f5, f*1.5), "i:%d",i)
+	}
+}
+
+
+// Different KBM period from Scale period - Perfect 5th 07 mapping
+func TestDiffPeriodsPerfect5th07Mapping(tt *testing.T) {
+	var s Scale
+	var k KeyboardMapping
+	var t Tuning
+	var err error
+	s,err = ReadSCLFile(testFile("12-ET-P5.scl"))
+	assert.NilError(tt,err)
+	k,err = ReadKBMFile(testFile("mapping-n60-fifths.kbm"))
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCLAndKBM(s,k)
+	assert.NilError(tt,err)
+
+	for i := 60; i<70; i+=2 {
+		f := t.FrequencyForMidiNote(i)
+		f5 := t.FrequencyForMidiNote(i+1)
+		assert.Equal(tt, "", approxEqual(1e-6, f5, f*1.5), "i:%d",i)
+	}
+}
 
 
 
