@@ -52,7 +52,12 @@ func ReadKBMStream(rdr io.Reader) (kbm KeyboardMapping, err error) {
 	lineno := 0
 	for scanner.Scan() {
 		line := scanner.Text()
-		kbm.RawText = kbm.RawText + "\n" + line
+		if lineno == 0 {
+			// don't add a newline before the first character
+			kbm.RawText = line
+		}else {
+			kbm.RawText = kbm.RawText + "\n" + line
+		}
 		lineno++
 		line = strings.TrimRight(line, "\t ")
 		if len(line) > 0 && line[0] == '!' {

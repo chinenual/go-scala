@@ -112,7 +112,12 @@ func ReadSCLStream(rdr io.Reader) (scale Scale, err error) {
 	lineno := 0
 	for scanner.Scan() {
 		line := scanner.Text()
-		scale.RawText = scale.RawText + "\n" + line
+		if lineno == 0 {
+			// don't add a newline before the first character
+			scale.RawText = line
+		}else {
+			scale.RawText = scale.RawText + "\n" + line
+		}
 		lineno++
 		line = strings.TrimRight(line, "\t ")
 

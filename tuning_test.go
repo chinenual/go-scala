@@ -139,3 +139,85 @@ func TestRandomAsScaleConsistently(tt *testing.T) {
 		}
 	}
 }
+
+
+// Internal Constraints between Measures -- Test All Constraints SCL only
+// Internal Constraints between Measures -- Test All Constraints KBM only
+// Internal Constraints between Measures -- Test All Constraints SCL & KBM
+
+// Did not import the Spanish locale tests.  Revisit this.
+
+// Several Sample Scales - Non Monotonic 12 note
+// Several Sample Scales - 31 edo
+// Several Sample Scales - ED3-17
+// Several Sample Scales - ED4-17
+// Several Sample Scales - 6 exact
+// Several Sample Scales - Carlos Alpha (one step scale)
+
+// Remapping frequency with non-12-length scales - 6 exact
+// Remapping frequency with non-12-length scales - 31 edo
+// Remapping frequency with non-12-length scales - ED4-17
+// Remapping frequency with non-12-length scales - ED3-17
+
+// KBMs with Gaps - 12 Intune with Gap
+
+// KBM ReOrdering - Non Monotonic KBM note
+
+// Exceptions and Bad Files - Read Non-present files
+// Exceptions and Bad Files - Bad SCL
+// Exceptions and Bad Files - Bad KBM
+
+// Built in Generators - ED2
+// Built in Generators - ED3-17
+// Built in Generators - ED4-17
+// Built in Generators - Constraints on random EDN-M
+// Built in Generators - EDMN Errors
+// Built in Generators - KBM Generator
+
+// Dos Line Endings and Blanks - SCL
+// Dos Line Endings and Blanks - Properly read a file with DOS line endings
+// Dos Line Endings and Blanks - KBM
+// Dos Line Endings and Blanks - Blank SCL
+
+// Tone API - Valid Tones
+// Tone API - Error Tones
+
+// Scale Position - Untuned
+// Scale Position - Untuned, Mapped
+// Scale Position - Tuned, Unmapped
+// Scale Position - Tuned, Mapped
+
+// Default KBM Constructor has Right Base - All Scales with Default KBM
+
+// Different KBM period from Scale period - 31Edo with mean tone mapping
+// Different KBM period from Scale period - Perfect 5th UnMapped
+// Different KBM period from Scale period - Perfect 5th 07 mapping
+
+// KBM Constructor RawText - KBM
+func TestReparseKBMRawText(tt *testing.T) {
+	var k KeyboardMapping
+	var kparse KeyboardMapping
+	var err error
+	k, err = standardKeyboardMapping()
+	assert.NilError(tt, err)
+
+	kparse, err = ParseKBMData(k.RawText)
+	assert.NilError(tt, err)
+
+	assert.Equal(tt, k.Count, kparse.Count)
+	assert.Equal(tt, k.FirstMidi, kparse.FirstMidi)
+	assert.Equal(tt, k.LastMidi, kparse.LastMidi)
+	assert.Equal(tt, k.MiddleNote, kparse.MiddleNote)
+	assert.Equal(tt, k.TuningConstantNote, kparse.TuningConstantNote)
+	assert.Equal(tt, k.TuningFrequency, kparse.TuningFrequency)
+	assert.Equal(tt, k.OctaveDegrees, kparse.OctaveDegrees)
+}
+
+
+
+
+
+
+
+
+
