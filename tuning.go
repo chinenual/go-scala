@@ -75,7 +75,7 @@ func CreateStandardTuning() (t Tuning, err error) {
 	if s, err = evenTemperment12NoteScale(); err != nil {
 		return
 	}
-	if t, err = CreateTuningFromSCLAndKBD(s, k); err != nil {
+	if t, err = CreateTuningFromSCLAndKBM(s, k); err != nil {
 		return
 	}
 	return
@@ -87,26 +87,26 @@ func CreateTuningFromSCL(s Scale) (t Tuning, err error) {
 	if k, err = standardKeyboardMapping(); err != nil {
 		return
 	}
-	if t, err = CreateTuningFromSCLAndKBD(s, k); err != nil {
+	if t, err = CreateTuningFromSCLAndKBM(s, k); err != nil {
 		return
 	}
 	return
 }
 
-// CreateTuningFromKBD constructs a tuning for a particular mapping.
-func CreateTuningFromKBD(k KeyboardMapping) (t Tuning, err error) {
+// CreateTuningFromKBM constructs a tuning for a particular mapping.
+func CreateTuningFromKBM(k KeyboardMapping) (t Tuning, err error) {
 	var s Scale
 	if s, err = evenTemperment12NoteScale(); err != nil {
 		return
 	}
-	if t, err = CreateTuningFromSCLAndKBD(s, k); err != nil {
+	if t, err = CreateTuningFromSCLAndKBM(s, k); err != nil {
 		return
 	}
 	return
 }
 
-// CreateTuningFromSCLAndKBD constructs a tuning for a particular scale and mapping
-func CreateTuningFromSCLAndKBD(s Scale, k KeyboardMapping) (tuning Tuning, err error) {
+// CreateTuningFromSCLAndKBM constructs a tuning for a particular scale and mapping
+func CreateTuningFromSCLAndKBM(s Scale, k KeyboardMapping) (tuning Tuning, err error) {
 	var t TuningImpl
 
 	t.scale = s
@@ -171,6 +171,7 @@ func CreateTuningFromSCLAndKBD(s Scale, k KeyboardMapping) (tuning Tuning, err e
 			var rounds int
 			var thisRound int
 			disable := false
+
 			if k.Count == 0 {
 				rounds = (distanceFromScale0 - 1) / s.Count
 				thisRound = (distanceFromScale0 - 1) % s.Count
@@ -212,7 +213,7 @@ func CreateTuningFromSCLAndKBD(s Scale, k KeyboardMapping) (tuning Tuning, err e
 					rounds = rotations
 					thisRound = cm - 1
 					if thisRound < 0 {
-						thisRound = k.OctaveDegrees - 1
+						thisRound = (k.OctaveDegrees - 1) % s.Count
 						rounds--
 					}
 				} else {

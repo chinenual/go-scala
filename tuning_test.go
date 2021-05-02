@@ -5,12 +5,39 @@ import (
 	"gotest.tools/v3/assert"
 	"math"
 	"math/rand"
+	"path"
 	"testing"
 )
 
 // margin is delta for doing floating point comparisons
 // Surge uses 1.0e-10 -- need to diagnose why my numbers are less precise
 const margin = 1.0e-6
+
+const testData = "testdata"
+var testSCLs = []string{
+	"12-intune.scl",
+	"12-shuffled.scl" ,
+	"31edo.scl",
+	"6-exact.scl" ,
+	"marvel12.scl" ,
+	"zeus22.scl",
+	"ED4-17.scl",
+	"ED3-17.scl",
+	"31edo_dos_lineends.scl",
+}
+var testKBMs = []string{
+	"empty-note61.kbm",
+	"empty-note69.kbm",
+	"mapping-a440-constant.kbm",
+	"mapping-a442-7-to-12.kbm",
+	"mapping-whitekeys-a440.kbm",
+	"mapping-whitekeys-c261.kbm",
+	"shuffle-a440-constant.kbm",
+}
+
+func testFile(f string) string {
+	return path.Join(testData, f)
+}
 
 // HACK:
 // returns "" if equal, else a useful error message. intended to be called from assert.Equals("", approxEqual(...))
@@ -27,7 +54,7 @@ func approxEqual(margin float64, v1 float64, v2 float64) (result string) {
 // Normal Go convention would name the *testing.T argument 't'.  But in order to keep the tests syntactically similar
 // to the Surge tests, which use 't' for the tuning variable, I'm using 'tt' in this file.
 
-// 12-intune tunes properly
+// Identity Tuning Tests - 12-intune tunes properly
 func TestIdentity12Intune(tt *testing.T) {
 	var s Scale
 	var t Tuning
@@ -42,7 +69,7 @@ func TestIdentity12Intune(tt *testing.T) {
 	assert.Equal(tt, "", approxEqual(margin, t.LogScaledFrequencyForMidiNote( 60 ), 5.0 ))
 }
 
-// 12-intune tunes doubles properly
+// Identity Tuning Tests - 12-intune tunes doubles properly
 func TestIdentity12IntuneDoubles(tt *testing.T) {
 	var s Scale
 	var t Tuning
@@ -67,7 +94,7 @@ func TestIdentity12IntuneDoubles(tt *testing.T) {
 	}
 }
 
-// Scaling is constant
+// Identity Tuning Tests - Scaling is constant
 func TestScalingIsConstant(tt *testing.T) {
 	var s Scale
 	var t Tuning
@@ -93,7 +120,7 @@ func TestKeyboardRemappingA69A440(tt *testing.T) {
 	var err error
 	k, err = tuneA69To(440.0)
 	assert.NilError(tt, err)
-	t,err = CreateTuningFromKBD(k)
+	t,err = CreateTuningFromKBM(k)
 	assert.NilError(tt, err)
 	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(69), 440.0))
 	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(60), 261.625565301))
@@ -106,13 +133,13 @@ func TestKeyboardRemappingA69A432(tt *testing.T) {
 	var err error
 	k, err = tuneA69To(432.0)
 	assert.NilError(tt, err)
-	t,err = CreateTuningFromKBD(k)
+	t,err = CreateTuningFromKBM(k)
 	assert.NilError(tt, err)
 	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(69), 432.0))
 	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(60), 261.625565301 * 432.0 / 440.0))
 }
 
-// Random As Scale Consistently
+// Simple Keyboard Remapping Tunes A69 - Random As Scale Consistently
 func TestRandomAsScaleConsistently(tt *testing.T) {
 	var ut Tuning
 	var err error
@@ -125,7 +152,7 @@ func TestRandomAsScaleConsistently(tt *testing.T) {
 		var t Tuning
 		k, err = tuneA69To(fr)
 		assert.NilError(tt, err)
-		t, err = CreateTuningFromKBD(k)
+		t, err = CreateTuningFromKBM(k)
 		assert.NilError(tt, err)
 		assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(69), fr), "i==%d", i)
 		assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(60), 261.625565301  * fr / 440.0), "i==%d", i)
@@ -142,8 +169,59 @@ func TestRandomAsScaleConsistently(tt *testing.T) {
 
 
 // Internal Constraints between Measures -- Test All Constraints SCL only
+func TestInternalConstraintsSCL(tt *testing.T) {
+	for _,sclFname := range testSCLs {
+		var s Scale
+		var t Tuning
+		var err error
+		s,err = ReadSCLFile(testFile(sclFname))
+		assert.NilError(tt,err)
+		t,err = CreateTuningFromSCL(s)
+		assert.NilError(tt,err)
+		for i := 0; i < 127; i++ {
+			assert.Equal(tt, t.FrequencyForMidiNote(i), t.FrequencyForMidiNoteScaledByMidi0(i) * Midi0Freq, "scl:%s",sclFname)
+			assert.Equal(tt, t.FrequencyForMidiNoteScaledByMidi0(i), math.Pow(2.0, t.LogScaledFrequencyForMidiNote(i)), "scl:%s",sclFname)
+		}
+	}
+}
 // Internal Constraints between Measures -- Test All Constraints KBM only
+func TestInternalConstraintsKBM(tt *testing.T) {
+	for _,kbmFname := range testKBMs {
+		var k KeyboardMapping
+		var t Tuning
+		var err error
+		k,err = ReadKBMFile(testFile(kbmFname))
+		assert.NilError(tt,err)
+		t,err = CreateTuningFromKBM(k)
+		assert.NilError(tt,err)
+		for i := 0; i < 127; i++ {
+			assert.Equal(tt, t.FrequencyForMidiNote(i), t.FrequencyForMidiNoteScaledByMidi0(i) * Midi0Freq, "scl:%s",kbmFname)
+			assert.Equal(tt, t.FrequencyForMidiNoteScaledByMidi0(i), math.Pow(2.0, t.LogScaledFrequencyForMidiNote(i)), "scl:%s",kbmFname)
+		}
+	}
+}
 // Internal Constraints between Measures -- Test All Constraints SCL & KBM
+func TestInternalConstraintsSCLAndKBM(tt *testing.T) {
+	for _,sclFname := range testSCLs {
+		for _, kbmFname := range testKBMs {
+			var k KeyboardMapping
+			var s Scale
+			var t Tuning
+			var err error
+			fmt.Printf("DEBUG: test %s %s\n", sclFname,kbmFname)
+			s, err = ReadSCLFile(testFile(sclFname))
+			assert.NilError(tt, err)
+			k, err = ReadKBMFile(testFile(kbmFname))
+			assert.NilError(tt, err)
+			t, err = CreateTuningFromSCLAndKBM(s,k)
+			assert.NilError(tt, err)
+			for i := 0; i < 127; i++ {
+				assert.Equal(tt, t.FrequencyForMidiNote(i), t.FrequencyForMidiNoteScaledByMidi0(i)*Midi0Freq, "scl:%s, kbm:%s", sclFname, kbmFname)
+				assert.Equal(tt, t.FrequencyForMidiNoteScaledByMidi0(i), math.Pow(2.0, t.LogScaledFrequencyForMidiNote(i)), "scl:%s, kbm:%s", sclFname, kbmFname)
+			}
+		}
+	}
+}
 
 // Did not import the Spanish locale tests.  Revisit this.
 
@@ -192,28 +270,6 @@ func TestRandomAsScaleConsistently(tt *testing.T) {
 // Different KBM period from Scale period - 31Edo with mean tone mapping
 // Different KBM period from Scale period - Perfect 5th UnMapped
 // Different KBM period from Scale period - Perfect 5th 07 mapping
-
-// KBM Constructor RawText - KBM
-func TestReparseKBMRawText(tt *testing.T) {
-	var k KeyboardMapping
-	var kparse KeyboardMapping
-	var err error
-	k, err = standardKeyboardMapping()
-	assert.NilError(tt, err)
-
-	kparse, err = ParseKBMData(k.RawText)
-	assert.NilError(tt, err)
-
-	assert.Equal(tt, k.Count, kparse.Count)
-	assert.Equal(tt, k.FirstMidi, kparse.FirstMidi)
-	assert.Equal(tt, k.LastMidi, kparse.LastMidi)
-	assert.Equal(tt, k.MiddleNote, kparse.MiddleNote)
-	assert.Equal(tt, k.TuningConstantNote, kparse.TuningConstantNote)
-	assert.Equal(tt, k.TuningFrequency, kparse.TuningFrequency)
-	assert.Equal(tt, k.OctaveDegrees, kparse.OctaveDegrees)
-}
-
-
 
 
 
