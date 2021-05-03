@@ -9,7 +9,7 @@ import (
 
 // Loading tuning files - KBM File from text
 func TestKeymapFromString(t *testing.T) {
-	kbm,err := KeyboardMappingFromKBMString(`! A scale file
+	kbm, err := KeyboardMappingFromKBMString(`! A scale file
 ! with zero size
 0
 ! spanning the keybaord
@@ -23,14 +23,13 @@ func TestKeymapFromString(t *testing.T) {
 0
 `)
 	assert.NilError(t, err)
-	assert.Equal(t, kbm.Count,0)
-	assert.Equal(t, kbm.FirstMidi,0)
-	assert.Equal(t, kbm.LastMidi,127)
-	assert.Equal(t, kbm.MiddleNote,60)
-	assert.Equal(t, kbm.TuningConstantNote,69)
-	assert.Equal(t, kbm.TuningFrequency,452.0)
+	assert.Equal(t, kbm.Count, 0)
+	assert.Equal(t, kbm.FirstMidi, 0)
+	assert.Equal(t, kbm.LastMidi, 127)
+	assert.Equal(t, kbm.MiddleNote, 60)
+	assert.Equal(t, kbm.TuningConstantNote, 69)
+	assert.Equal(t, kbm.TuningFrequency, 452.0)
 }
-
 
 // KBM Constructor RawText - KBM
 func TestReparseKBMRawText(tt *testing.T) {
@@ -52,10 +51,9 @@ func TestReparseKBMRawText(tt *testing.T) {
 	assert.Equal(tt, k.OctaveDegrees, kparse.OctaveDegrees)
 }
 
-
 // Built in Generators - KBM Generator
 func TestBuiltinGeneratorsKBMGenerator(tt *testing.T) {
-	for i := 0; i<100; i++ {
+	for i := 0; i < 100; i++ {
 		n := int(rand.Uint32()%60 + 30)
 		fr := 1000.0 * float64(rand.Uint32()/math.MaxUint32+50)
 
@@ -66,7 +64,7 @@ func TestBuiltinGeneratorsKBMGenerator(tt *testing.T) {
 		assert.NilError(tt, err)
 		assert.Equal(tt, k.TuningConstantNote, n)
 		assert.Equal(tt, k.TuningFrequency, fr)
-		assert.Equal(tt, k.TuningPitch, k.TuningFrequency/Midi0Freq)
+		assert.Equal(tt, k.TuningPitch, k.TuningFrequency/midi0Freq)
 		assert.Check(tt, len(k.RawText) > 1)
 	}
 }

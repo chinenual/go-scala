@@ -268,16 +268,16 @@ func imax(x int, y int) int {
 // for A and middle C.
 func (t tuningImpl) FrequencyForMidiNote(mn int) float64 {
 	mni := imin(imax(0, mn+256), numPrecomputed-1)
-	return t.ptable[mni] * Midi0Freq
+	return t.ptable[mni] * midi0Freq
 }
 
 // FrequencyForMidiNoteScaledByMidi0 returns the frequency but with the
 // standard frequency of midi note 0 divided out. So in standard tuning
 // frequencyForMidiNoteScaledByMidi0(0) = 1 and frequencyForMidiNoteScaledByMidi0(60) = 32
-// 
+//
 // Both the frequency measures have the feature of doubling when frequency doubles
 // (or when a standard octave is spanned), whereas the log one increase by 1 per frequency double.
-// 
+//
 // Depending on your internal pitch model, one of these three methods should allow you
 // to calibrate your oscillators to the appropriate frequency based on the midi note
 // at hand.
@@ -288,10 +288,10 @@ func (t tuningImpl) FrequencyForMidiNoteScaledByMidi0(mn int) float64 {
 
 // LogScaledFrequencyForMidiNote returns the log base 2 of the scaled frequency.
 // So logScaledFrequencyForMidiNote(0) = 0 and logScaledFrequencyForMidiNote(60) = 5.
-// 
+//
 // Both the frequency measures have the feature of doubling when frequency doubles
 // (or when a standard octave is spanned), whereas the log one increase by 1 per frequency double.
-// 
+//
 // Depending on your internal pitch model, one of these three methods should allow you
 // to calibrate your oscillators to the appropriate frequency based on the midi note
 // at hand.

@@ -55,7 +55,7 @@ func KeyboardMappingFromKBMStream(rdr io.Reader) (kbm KeyboardMapping, err error
 		if lineno == 0 {
 			// don't add a newline before the first character
 			kbm.RawText = line
-		}else {
+		} else {
 			kbm.RawText = kbm.RawText + "\n" + line
 		}
 		lineno++
@@ -70,7 +70,7 @@ func KeyboardMappingFromKBMStream(rdr io.Reader) (kbm KeyboardMapping, err error
 				r := rune(line[i])
 				// difference vs. C++ - the scanner strips line endings so no need to check for CR and LF
 				if !(line[i] == ' ' || unicode.IsDigit(r) || line[i] == '.') {
-					err = errors.Errorf("Invalid line %d.  line=\"%s\". Bad character is '%c'/%d",lineno,line,line[i],line[i])
+					err = errors.Errorf("Invalid line %d.  line=\"%s\". Bad character is '%c'/%d", lineno, line, line[i], line[i])
 					return
 				}
 			}
@@ -132,17 +132,17 @@ func KeyboardMappingFromKBMStream(rdr io.Reader) (kbm KeyboardMapping, err error
 			}
 		case trailing:
 		}
-		if ! ( state == keys || state == trailing )  {
+		if !(state == keys || state == trailing) {
 			state = state + 1
 		}
-		if state == keys && kbm.Count == 0  {
+		if state == keys && kbm.Count == 0 {
 			state = trailing
 		}
 	}
 	if err = scanner.Err(); err != nil {
 		return
 	}
-	if ! (state == keys || state == trailing) {
+	if !(state == keys || state == trailing) {
 		err = errors.Errorf("Incomplete KBM file.  Unable to get keys section of file.")
 		return
 	}
@@ -217,9 +217,10 @@ func KeyboardMappingStartScaleOnAndTuneNoteTo(scaleStart int, midiNote int, freq
 	return
 }
 
+// KeyboardMappingStandard is the standard key mapping
 func KeyboardMappingStandard() (kbm KeyboardMapping, err error) {
-	freq := Midi0Freq * 32.0
-	kbm,err = KeyboardMappingFromKBMString(`! Default KBM file
+	freq := midi0Freq * 32.0
+	kbm, err = KeyboardMappingFromKBMString(`! Default KBM file
 0
 0
 127

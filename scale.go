@@ -11,10 +11,10 @@ import (
 	"strings"
 )
 
-
-const Midi0Freq = 8.17579891564371 // or 440.0 * pow( 2.0, - (69.0/12.0 ) )
+const midi0Freq = 8.17579891564371 // or 440.0 * pow( 2.0, - (69.0/12.0 ) )
 
 type toneType int
+
 const (
 	toneCents toneType = iota
 	toneRatio
@@ -48,21 +48,17 @@ type Scale struct {
 	Tones       []tone // The tones
 }
 
-
-
-
-
 func toneFromString(line string, lineno int) (tone tone, err error) {
 	if strings.Contains(line, ".") {
 		tone.Type = toneCents
-		if tone.Cents,err = strconv.ParseFloat(strings.TrimSpace(line), 64); err != nil {
+		if tone.Cents, err = strconv.ParseFloat(strings.TrimSpace(line), 64); err != nil {
 			err = errors.Wrapf(err, "Error parsing scale cent: \"%s\", line %d", line, lineno)
 			return
 		}
 	} else {
 		var v int64
 		tone.Type = toneRatio
-		split := strings.Split(line,"/")
+		split := strings.Split(line, "/")
 		if split != nil && len(split) == 1 {
 			if v, err = strconv.ParseInt(strings.TrimSpace(split[0]), 10, 32); err != nil {
 				err = errors.Errorf("Error parsing scale ratio numerator: \"%s\", line %d", split[0], lineno)
@@ -115,7 +111,7 @@ func ScaleFromSCLStream(rdr io.Reader) (scale Scale, err error) {
 		if lineno == 0 {
 			// don't add a newline before the first character
 			scale.RawText = line
-		}else {
+		} else {
 			scale.RawText = scale.RawText + "\n" + line
 		}
 		lineno++
@@ -123,7 +119,7 @@ func ScaleFromSCLStream(rdr io.Reader) (scale Scale, err error) {
 
 		//fmt.Printf("DEBUG: l:%d state:%d line:\"%s\":  %#v",lineno,state,line,scale)
 
-		if (state == readNote && len(line) == 0) ||  (len(line)>0 && line[0] == '!') {
+		if (state == readNote && len(line) == 0) || (len(line) > 0 && line[0] == '!') {
 			continue
 		}
 		var v int64
@@ -132,19 +128,19 @@ func ScaleFromSCLStream(rdr io.Reader) (scale Scale, err error) {
 			scale.Description = line
 			state = readCount
 		case readCount:
-			if v, err = strconv.ParseInt(strings.TrimSpace(line),10,32); err != nil  {
-				err = errors.Wrapf(err, "Error parsing Count: \"%s\", line %d", line,lineno)
+			if v, err = strconv.ParseInt(strings.TrimSpace(line), 10, 32); err != nil {
+				err = errors.Wrapf(err, "Error parsing Count: \"%s\", line %d", line, lineno)
 				return
 			}
 			if v < 1 {
-				err = errors.Wrapf(err, "Error parsing Count: must be > 0: \"%s\", line %d", line,lineno)
+				err = errors.Wrapf(err, "Error parsing Count: must be > 0: \"%s\", line %d", line, lineno)
 				return
 			}
 			scale.Count = int(v)
 			state = readNote
 		case readNote:
 			var tone tone
-			if tone,err = toneFromString(line, lineno); err != nil {
+			if tone, err = toneFromString(line, lineno); err != nil {
 				return
 			}
 			scale.Tones = append(scale.Tones, tone)
@@ -157,12 +153,12 @@ func ScaleFromSCLStream(rdr io.Reader) (scale Scale, err error) {
 	if err = scanner.Err(); err != nil {
 		return
 	}
-	if ! (state == readNote || state == trailing) {
+	if !(state == readNote || state == trailing) {
 		err = errors.Errorf("Incomplete SCL file. Found no notes section in the file.")
 		return
 	}
 	if len(scale.Tones) != scale.Count {
-		err = errors.Errorf("Read fewer notes (%d) than count (%d)", len(scale.Tones),scale.Count)
+		err = errors.Errorf("Read fewer notes (%d) than count (%d)", len(scale.Tones), scale.Count)
 		return
 	}
 	return
@@ -176,7 +172,7 @@ func ScaleFromSCLFile(fname string) (scale Scale, err error) {
 		return
 	}
 	defer file.Close()
-	if scale,err = ScaleFromSCLStream(file); err != nil {
+	if scale, err = ScaleFromSCLStream(file); err != nil {
 		err = errors.Wrapf(err, "Unable to parse file '%s'", fname)
 		return
 	}
@@ -187,7 +183,7 @@ func ScaleFromSCLFile(fname string) (scale Scale, err error) {
 // ScaleFromSCLString returns a scale from the SCL file contents in memory
 func ScaleFromSCLString(sclContents string) (scale Scale, err error) {
 	rdr := strings.NewReader(sclContents)
-	if scale,err = ScaleFromSCLStream(rdr); err != nil {
+	if scale, err = ScaleFromSCLStream(rdr); err != nil {
 		return
 	}
 	scale.Name = "Scale from patch"
@@ -197,7 +193,7 @@ func ScaleFromSCLString(sclContents string) (scale Scale, err error) {
 // ScaleEvenTemperment12NoteScale provides a utility scale which is
 // the "standard tuning" scale
 func ScaleEvenTemperment12NoteScale() (scale Scale, err error) {
-	if scale,err = ScaleFromSCLString(`! 12 tone Equal Temperament.scl
+	if scale, err = ScaleFromSCLString(`! 12 tone Equal Temperament.scl
 !
 12 tone Equal Temperament | ED2-12 - Equal division of harmonic 2 into 12 parts
  12
@@ -240,14 +236,13 @@ func ScaleEvenDivisionOfSpanByM(span int, m int) (scale Scale, err error) {
 	topCents := 1200.0 * math.Log(float64(span)) / math.Log(2.0)
 	dCents := topCents / float64(m)
 	for i := 0; i < m; i++ {
-		buf += fmt.Sprintf("%f\n", dCents * float64(i))
+		buf += fmt.Sprintf("%f\n", dCents*float64(i))
 	}
 	buf += strconv.Itoa(span) + "/1\n"
 
-	if scale,err = ScaleFromSCLString(buf); err != nil {
+	if scale, err = ScaleFromSCLString(buf); err != nil {
 		return
 	}
 
 	return
 }
-
