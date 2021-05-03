@@ -81,7 +81,7 @@ func TuningEvenStandard() (t Tuning, err error) {
 	return
 }
 
-// TuningFromSCL constructs a tuning for a particular scale.
+// TuningFromSCL constructs a tuning for a particular scale (standard key mapping)
 func TuningFromSCL(s Scale) (t Tuning, err error) {
 	var k KeyboardMapping
 	if k, err = KeyboardMappingStandard(); err != nil {
@@ -93,7 +93,7 @@ func TuningFromSCL(s Scale) (t Tuning, err error) {
 	return
 }
 
-// TuningFromKBM constructs a tuning for a particular mapping.
+// TuningFromKBM constructs a tuning for a particular mapping (12 tone even temperament)
 func TuningFromKBM(k KeyboardMapping) (t Tuning, err error) {
 	var s Scale
 	if s, err = ScaleEvenTemperment12NoteScale(); err != nil {
