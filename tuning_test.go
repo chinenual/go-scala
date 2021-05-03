@@ -525,22 +525,52 @@ func TestRemappingFreqWithNon12ScalesED317(tt *testing.T) {
 // Built in Generators - KBM Generator
 
 // Dos Line Endings and Blanks - SCL
+func TestDosSCL(tt *testing.T) {
+	var err error
+	_,err = ReadSCLFile(testFile("12-intune-dosle.scl"))
+	assert.NilError(tt,err)
+}
+
 // Dos Line Endings and Blanks - Properly read a file with DOS line endings
+func TestDosDosEndings(tt *testing.T) {
+	var err error
+	var s Scale
+	s,err = ReadSCLFile(testFile("31edo_dos_lineends.scl"))
+	assert.NilError(tt,err)
+	assert.Equal(tt, s.Count, 31)
+	// should not include \r:
+	assert.Equal(tt, s.Description, "31 equal divisions of octave")
+
+	// the parsing should ive the same floatvalues independent of crlf status obviously
+	var q Scale
+	q,err = ReadSCLFile(testFile("31edo.scl"))
+	assert.NilError(tt,err)
+	for i:= 0; i<q.Count; i++ {
+		assert.Equal(tt, q.Tones[i].FloatValue, s.Tones[i].FloatValue)
+	}
+}
+
 // Dos Line Endings and Blanks - KBM
+func TestDosKBM(tt *testing.T) {
+	var err error
+	var k KeyboardMapping
+	k,err = ReadKBMFile(testFile("empty-note69-dosle.kbm"))
+	assert.NilError(tt,err)
+	assert.Equal(tt, k.TuningConstantNote, 69)
+}
+
 // Dos Line Endings and Blanks - Blank SCL
 func TestDosBlankSCL(tt *testing.T) {
 	var err error
 	_,err = ParseSCLData("")
-	assert.ErrorContains(tt,err, "xxx")
+	assert.ErrorContains(tt,err, "Incomplete SCL")
 
 	// but what if we do construct a bad one?
 	var s Scale
-	var t Tuning
-
 	s.Count = 0
 	s.Tones = nil
-	t,err = CreateTuningFromSCL(s)
-	assert.ErrorContains(tt,err, "uuu")
+	_,err = CreateTuningFromSCL(s)
+	assert.ErrorContains(tt,err, "Your scale provided 0 notes")
 }
 
 // Tone API - Valid Tones
