@@ -528,6 +528,20 @@ func TestRemappingFreqWithNon12ScalesED317(tt *testing.T) {
 // Dos Line Endings and Blanks - Properly read a file with DOS line endings
 // Dos Line Endings and Blanks - KBM
 // Dos Line Endings and Blanks - Blank SCL
+func TestDosBlankSCL(tt *testing.T) {
+	var err error
+	_,err = ParseSCLData("")
+	assert.ErrorContains(tt,err, "xxx")
+
+	// but what if we do construct a bad one?
+	var s Scale
+	var t Tuning
+
+	s.Count = 0
+	s.Tones = nil
+	t,err = CreateTuningFromSCL(s)
+	assert.ErrorContains(tt,err, "uuu")
+}
 
 // Tone API - Valid Tones
 func TestToneAPIValid(tt *testing.T) {
