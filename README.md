@@ -12,7 +12,7 @@ import (
   "github.com/chinenual/go-scala" scala
 )
 ...
-s,_ := scala.ScaleSCLFile("./my-scale.scl")
+s,_ := scala.ScaleFromSCLFile("./my-scale.scl")
 k,_ := scala.KeyboardMappingFromKBMFile("./my-mapping.kbm")
 t,_ := scala.TuningFromSCLAndKBM(s,k)
 fmt.Printf("The frequency of C4 and A4 are %f and %f\n",
