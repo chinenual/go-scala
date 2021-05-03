@@ -127,6 +127,9 @@ func ReadKBMStream(rdr io.Reader) (kbm KeyboardMapping, err error) {
 				return
 			}
 			kbm.Keys = append(kbm.Keys, i)
+			if len(kbm.Keys) == kbm.Count {
+				state = trailing
+			}
 		case trailing:
 		}
 		if ! ( state == keys || state == trailing )  {
@@ -155,10 +158,12 @@ func ReadKBMStream(rdr io.Reader) (kbm KeyboardMapping, err error) {
 func ReadKBMFile(fname string) (kbm KeyboardMapping, err error) {
 	var file *os.File
 	if file, err = os.Open(fname); err != nil {
+		err = errors.Wrapf(err, "Unable to open file '%s'", fname)
 		return
 	}
 	defer file.Close()
 	if kbm, err = ReadKBMStream(file); err != nil {
+		err = errors.Wrapf(err, "Unable to parse file '%s'", fname)
 		return
 	}
 	kbm.Name = fname

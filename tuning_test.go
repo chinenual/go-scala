@@ -572,8 +572,47 @@ func TestKBMReorderingNoMonotonicKBMNote(tt *testing.T) {
 	}
 }
 // Exceptions and Bad Files - Read Non-present files
+func TestBadFilesNoPresent(tt *testing.T) {
+	var err error
+	_,err = ReadSCLFile("blahlfdsfds")
+	assert.ErrorContains(tt, err, "Unable to open file")
+	_,err = ReadKBMFile("blahlfdsfds")
+	assert.ErrorContains(tt, err, "Unable to open file")
+}
+
 // Exceptions and Bad Files - Bad SCL
+func TestBadFilesBadSCL(tt *testing.T) {
+	var err error
+
+	// Trailing data is OK
+	_, err = ReadSCLFile(testFile("bad/extraline.scl"))
+	assert.NilError(tt, err)
+
+	_, err = ReadSCLFile(testFile("bad/badnote.scl"))
+	assert.ErrorContains(tt, err, "Unable to parse file")
+	_, err = ReadSCLFile(testFile("bad/blanknote.scl"))
+	assert.ErrorContains(tt, err, "Unable to parse file")
+	_, err = ReadSCLFile(testFile("bad/missingnote.scl"))
+	assert.ErrorContains(tt, err, "Unable to parse file")
+}
 // Exceptions and Bad Files - Bad KBM
+func TestBadFilesBadKBM(tt *testing.T) {
+	var err error
+	_, err = ReadKBMFile(testFile("bad/blank-line.kbm"))
+	assert.ErrorContains(tt, err, "Unable to parse file")
+	_, err = ReadKBMFile(testFile("bad/empty-bad.kbm"))
+	assert.ErrorContains(tt, err, "Unable to parse file")
+	_, err = ReadKBMFile(testFile("bad/garbage-key.kbm"))
+	assert.ErrorContains(tt, err, "Unable to parse file")
+
+	_, err = ReadKBMFile(testFile("bad/empty-extra.kbm"))
+	assert.NilError(tt, err)
+	_, err = ReadKBMFile(testFile("bad/extraline-long.kbm"))
+	assert.NilError(tt, err)
+
+	_, err = ReadKBMFile(testFile("bad/missing-note.kbm"))
+	assert.ErrorContains(tt, err, "Unable to parse file")
+}
 
 // Built in Generators - ED2
 // Built in Generators - ED3-17

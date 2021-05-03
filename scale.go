@@ -172,10 +172,12 @@ func ReadSCLStream(rdr io.Reader) (scale Scale, err error) {
 func ReadSCLFile(fname string) (scale Scale, err error) {
 	var file *os.File
 	if file, err = os.Open(fname); err != nil {
+		err = errors.Wrapf(err, "Unable to open file '%s'", fname)
 		return
 	}
 	defer file.Close()
 	if scale,err = ReadSCLStream(file); err != nil {
+		err = errors.Wrapf(err, "Unable to parse file '%s'", fname)
 		return
 	}
 	scale.Name = fname
