@@ -533,9 +533,129 @@ func TestRemappingFreqWithNon12ScalesED317(tt *testing.T) {
 // Tone API - Error Tones
 
 // Scale Position - Untuned
+func TestScalePositionUntuned(tt *testing.T) {
+	var t Tuning
+	var err error
+	t,err = CreateStandardTuning()
+	assert.NilError(tt,err)
+	for i:= 0; i < 127; i++ {
+		assert.Equal(tt, t.ScalePositionForMidiNote(i), i%12, "i:%d",i)
+	}
+}
 // Scale Position - Untuned, Mapped
+func TestScalePositionUntunedMapped(tt *testing.T) {
+	var err error
+	{
+		var t Tuning
+		var k KeyboardMapping
+		k, err = startScaleOnAndTuneNoteTo(60, 69, 440.0)
+		assert.NilError(tt, err)
+		t, err = CreateTuningFromKBM(k)
+		assert.NilError(tt, err)
+		for i := 0; i < 127; i++ {
+			assert.Equal(tt, t.ScalePositionForMidiNote(i), i%12, "i:%d", i)
+		}
+	}
+	for j := 0; j < 100; j++ {
+		n := int(rand.Uint32() % 60 + 30)
+		var t Tuning
+		var k KeyboardMapping
+		k, err = startScaleOnAndTuneNoteTo(n, 69, 440.0)
+		assert.NilError(tt, err)
+		t,err = CreateTuningFromKBM(k)
+		assert.NilError(tt, err)
+		for i := 0; i < 127; i++ {
+			assert.Equal(tt, t.ScalePositionForMidiNote(i), ( i + 12 - n % 12 ) % 12, "n:%d,i:%d", n,i)
+		}
+	}
+	{
+		// Check whitekeys
+		var t Tuning
+		var k KeyboardMapping
+		k,err = ReadKBMFile(testFile("mapping-whitekeys-c261.kbm"))
+		assert.NilError(tt, err)
+		t,err = CreateTuningFromKBM(k)
+		assert.NilError(tt,err)
+		maps := map[int]int{
+			0:  0,
+			2:  1,
+			4:  2,
+			5:  3,
+			7:  4,
+			9:  5,
+			11: 6,
+		}
+		for i := 0; i < 127; i++ {
+			spn := t.ScalePositionForMidiNote(i)
+			expected, exists := maps[i%12]
+			if !exists {
+				expected = -1
+			}
+			assert.Equal(tt, spn, expected, "i:%d", i)
+		}
+	}
+}
 // Scale Position - Tuned, Unmapped
+func TestScalePositionTunedUnmapped(tt *testing.T) {
+	var err error
+	// Check longer and shorter scales
+	{
+		var t Tuning
+		var s Scale
+		s, err = ReadSCLFile(testFile("zeus22.scl"))
+		assert.NilError(tt, err)
+		t, err = CreateTuningFromSCL(s)
+		assert.NilError(tt, err)
+		off := 60
+		for off > 0 {
+			off -= s.Count
+		}
+		for i := 0; i < 127; i++ {
+			assert.Equal(tt, t.ScalePositionForMidiNote(i),  ( i - off ) % s.Count, "i:%d", i)
+		}
+	}
+	// Check longer and shorter scales
+	{
+		var t Tuning
+		var s Scale
+		s, err = ReadSCLFile(testFile("6-exact.scl"))
+		assert.NilError(tt, err)
+		t, err = CreateTuningFromSCL(s)
+		assert.NilError(tt, err)
+		off := 60
+		for off > 0 {
+			off -= s.Count
+		}
+		for i := 0; i < 127; i++ {
+			assert.Equal(tt, t.ScalePositionForMidiNote(i),  ( i - off ) % s.Count, "i:%d", i)
+		}
+	}
+}
 // Scale Position - Tuned, Mapped
+func TestScalePositionTunedMapped(tt *testing.T) {
+	// And check some combos
+	var err error
+	var t Tuning
+	var k KeyboardMapping
+	var s Scale
+	for j := 0; j < 100; j++ {
+		n := int(rand.Uint32() % 60 + 30)
+
+		s, err = ReadSCLFile(testFile("zeus22.scl"))
+		assert.NilError(tt, err)
+		k,err  = startScaleOnAndTuneNoteTo(n, 69, 440.0)
+		assert.NilError(tt, err)
+		t, err = CreateTuningFromSCLAndKBM(s,k)
+		assert.NilError(tt, err)
+		off := n
+		for off > 0 {
+			off -= s.Count
+		}
+		for i := 0; i < 127; i++ {
+			assert.Equal(tt, t.ScalePositionForMidiNote(i),  ( i - off ) % s.Count, "n:%d,i:%d", n,i)
+		}
+	}
+}
 
 // Default KBM Constructor has Right Base - All Scales with Default KBM
 func TestDefaultKBMHasRightBase(tt *testing.T) {
