@@ -530,8 +530,43 @@ func TestRemappingFreqWithNon12ScalesED317(tt *testing.T) {
 // Dos Line Endings and Blanks - Blank SCL
 
 // Tone API - Valid Tones
-// Tone API - Error Tones
+func TestToneAPIValid(tt *testing.T) {
+	var err error
+	var t Tone
+	t,err = toneFromString("130.0",1)
+	assert.NilError(tt,err)
+	assert.Equal(tt, t.Type, ToneCents)
+	assert.Equal(tt, t.Cents, 130.0)
+	assert.Equal(tt, t.FloatValue, 130.0 / 1200.0 + 1.0)
 
+	t,err = toneFromString("7/2",1)
+	assert.NilError(tt,err)
+	assert.Equal(tt, t.Type, ToneRatio)
+	assert.Equal(tt, t.RatioN, 7)
+	assert.Equal(tt, t.RatioD, 2)
+	assert.Equal(tt, t.FloatValue, math.Log( 7.0 / 2.0 ) / math.Log( 2.0 ) + 1.0)
+
+	t,err = toneFromString("3",1)
+	assert.NilError(tt,err)
+	assert.Equal(tt, t.Type, ToneRatio)
+	assert.Equal(tt, t.RatioN, 3)
+	assert.Equal(tt, t.RatioD, 1)
+	assert.Equal(tt, t.FloatValue, math.Log( 3.0 / 1.0 ) / math.Log( 2.0 ) + 1.0)
+}
+// Tone API - Error Tones
+func TestToneAPIErrors(tt *testing.T) {
+	var err error
+	_,err = toneFromString("Not a number", 1)
+	assert.ErrorContains(tt, err,"Error parsing")
+
+	// the following are commented out in the C++, but test cleanly for Go:
+	_,err = toneFromString("100.200 with extra stuff", 1)
+	assert.ErrorContains(tt, err,"Error parsing")
+	_,err = toneFromString("7/4/2", 1)
+	assert.ErrorContains(tt, err,"Error parsing")
+	_,err = toneFromString("7*2", 1)
+	assert.ErrorContains(tt, err,"Error parsing")
+}
 // Scale Position - Untuned
 func TestScalePositionUntuned(tt *testing.T) {
 	var t Tuning
