@@ -111,8 +111,8 @@ func CreateTuningFromSCLAndKBM(s Scale, k KeyboardMapping) (tuning Tuning, err e
 
 	t.scale = s
 	t.keyboardMapping = k
-	if s.Count == 0 {
-		err = errors.Errorf("Unable to tune to a scale with no notes. Your scale provided 0 notes.")
+	if s.Count <= 0 {
+		err = errors.Errorf("Unable to tune to a scale with no notes. Your scale provided %v notes.", s.Count)
 		return
 	}
 	// From the KBM Spec: When not all scale degrees need to be mapped, the size of the map can be smaller than the size of the scale.

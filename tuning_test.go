@@ -9,10 +9,6 @@ import (
 	"testing"
 )
 
-// margin is delta for doing floating point comparisons
-// Surge uses 1.0e-10 -- need to diagnose why my numbers are less precise
-const margin = 1.0e-6
-
 const testData = "testdata"
 var testSCLs = []string{
 	"12-intune.scl",
@@ -64,9 +60,9 @@ func TestIdentity12Intune(tt *testing.T) {
 	assert.Equal(tt, s.Count, 12)
 	t,err = CreateTuningFromSCL(s)
 	assert.NilError(tt, err)
-	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote( 69 ), 440.0))
-	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNoteScaledByMidi0( 60 ), 32.0 ))
-	assert.Equal(tt, "", approxEqual(margin, t.LogScaledFrequencyForMidiNote( 60 ), 5.0 ))
+	assert.Equal(tt, "", approxEqual(1e-10, t.FrequencyForMidiNote( 69 ), 440.0))
+	assert.Equal(tt, "", approxEqual(1e-10, t.FrequencyForMidiNoteScaledByMidi0( 60 ), 32.0 ))
+	assert.Equal(tt, "", approxEqual(1e-10, t.LogScaledFrequencyForMidiNote( 60 ), 5.0 ))
 }
 
 // Identity Tuning Tests - 12-intune tunes doubles properly
@@ -86,8 +82,8 @@ func TestIdentity12IntuneDoubles(tt *testing.T) {
 			note += 12
 			nlc := t.LogScaledFrequencyForMidiNote(note)
 			nsc := t.FrequencyForMidiNoteScaledByMidi0(note)
-			assert.Equal(tt, "", approxEqual(margin, nsc, sc * 2.0), "i==%d, note==%d", i, note)
-			assert.Equal(tt, "", approxEqual(margin, nlc, lc + 1.0),"i==%d, note==%d", i, note)
+			assert.Equal(tt, "", approxEqual(1e-10, nsc, sc * 2.0), "i==%d, note==%d", i, note)
+			assert.Equal(tt, "", approxEqual(1e-10, nlc, lc + 1.0),"i==%d, note==%d", i, note)
 			sc = nsc
 			lc = nlc
 		}
@@ -122,8 +118,8 @@ func TestKeyboardRemappingA69A440(tt *testing.T) {
 	assert.NilError(tt, err)
 	t,err = CreateTuningFromKBM(k)
 	assert.NilError(tt, err)
-	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(69), 440.0))
-	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(60), 261.625565301))
+	assert.Equal(tt, "", approxEqual(1e-10, t.FrequencyForMidiNote(69), 440.0))
+	assert.Equal(tt, "", approxEqual(1e-10, t.FrequencyForMidiNote(60), 261.625565301))
 }
 
 // Simple Keyboard Remapping Tunes A69 - A432
@@ -135,8 +131,8 @@ func TestKeyboardRemappingA69A432(tt *testing.T) {
 	assert.NilError(tt, err)
 	t,err = CreateTuningFromKBM(k)
 	assert.NilError(tt, err)
-	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(69), 432.0))
-	assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(60), 261.625565301 * 432.0 / 440.0))
+	assert.Equal(tt, "", approxEqual(1e-10, t.FrequencyForMidiNote(69), 432.0))
+	assert.Equal(tt, "", approxEqual(1e-10, t.FrequencyForMidiNote(60), 261.625565301 * 432.0 / 440.0))
 }
 
 // Simple Keyboard Remapping Tunes A69 - Random As Scale Consistently
@@ -154,15 +150,15 @@ func TestRandomAsScaleConsistently(tt *testing.T) {
 		assert.NilError(tt, err)
 		t, err = CreateTuningFromKBM(k)
 		assert.NilError(tt, err)
-		assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(69), fr), "i==%d", i)
-		assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(60), 261.625565301  * fr / 440.0), "i==%d", i)
+		assert.Equal(tt, "", approxEqual(1e-10, t.FrequencyForMidiNote(69), fr), "i==%d", i)
+		assert.Equal(tt, "", approxEqual(1e-10, t.FrequencyForMidiNote(60), 261.625565301  * fr / 440.0), "i==%d", i)
 
 		ldiff := t.LogScaledFrequencyForMidiNote(69) - ut.LogScaledFrequencyForMidiNote(69)
 		ratio := t.FrequencyForMidiNote(69) / ut.FrequencyForMidiNote(69)
 
 		for j := -200; j < 200; j++ {
-			assert.Equal(tt, "", approxEqual(margin, t.LogScaledFrequencyForMidiNote(j) - ut.LogScaledFrequencyForMidiNote(j), ldiff), "i==%d, j==%d", i, j)
-			assert.Equal(tt, "", approxEqual(margin, t.FrequencyForMidiNote(j) / ut.FrequencyForMidiNote(j), ratio), "i==%d, j==%d", i, j)
+			assert.Equal(tt, "", approxEqual(1e-8, t.LogScaledFrequencyForMidiNote(j) - ut.LogScaledFrequencyForMidiNote(j), ldiff), "i==%d, j==%d", i, j)
+			assert.Equal(tt, "", approxEqual(1e-8, t.FrequencyForMidiNote(j) / ut.FrequencyForMidiNote(j), ratio), "i==%d, j==%d", i, j)
 		}
 	}
 }
@@ -268,12 +264,12 @@ func TestSampleScalesNonMonotonic12Note(tt *testing.T) {
 	t,err = CreateTuningFromSCL(s)
 	assert.NilError(tt,err)
 	assert.Equal(tt, s.Count, 12)
-	assert.Equal(tt, "", approxEqual(margin, t.LogScaledFrequencyForMidiNote(60), 5.0))
+	assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(60), 5.0))
 	order := []int{0, 2, 1, 3, 5, 4, 6, 7, 8, 10, 9, 11, 12}
 	l60 := t.LogScaledFrequencyForMidiNote(60)
 	for i,oi := range order {
 		li := t.LogScaledFrequencyForMidiNote(60+i)
-		assert.Equal(tt,"", approxEqual(margin, li-l60, float64(oi)/12.0), "order %d",oi)
+		assert.Equal(tt,"", approxEqual(1e-6, li-l60, float64(oi)/12.0), "order %d",oi)
 	}
 }
 
@@ -287,11 +283,11 @@ func TestSampleScales31Edo(tt *testing.T) {
 	t,err = CreateTuningFromSCL(s)
 	assert.NilError(tt,err)
 	assert.Equal(tt, s.Count, 31)
-	assert.Equal(tt, "", approxEqual(margin, t.LogScaledFrequencyForMidiNote(60), 5.0))
+	assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(60), 5.0))
 	prev := t.LogScaledFrequencyForMidiNote(60)
 	for i := 1; i<31; i++ {
 		curr := t.LogScaledFrequencyForMidiNote(60+i)
-		assert.Equal(tt,"", approxEqual(margin, curr-prev, 1.0/31.0), "i %d",i)
+		assert.Equal(tt,"", approxEqual(1e-6, curr-prev, 1.0/31.0), "i %d",i)
 		prev = curr
 	}
 }
@@ -306,11 +302,11 @@ func TestSampleScalesEd317(tt *testing.T) {
 	t,err = CreateTuningFromSCL(s)
 	assert.NilError(tt,err)
 	assert.Equal(tt, s.Count, 17)
-	assert.Equal(tt, "", approxEqual(margin, t.LogScaledFrequencyForMidiNote(60), 5.0))
+	assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(60), 5.0))
 	prev := t.LogScaledFrequencyForMidiNote(60)
 	for i := 1; i<40; i++ {
 		curr := t.LogScaledFrequencyForMidiNote(60+i)
-		assert.Equal(tt,"", approxEqual(margin, math.Pow(2.0, 17.0*(curr-prev)), 3.0), "i %d",i)
+		assert.Equal(tt,"", approxEqual(1e-6, math.Pow(2.0, 17.0*(curr-prev)), 3.0), "i %d",i)
 		prev = curr
 	}
 }
@@ -400,10 +396,8 @@ func TestRemappingFreqWithNon12Scales6Exact(tt *testing.T) {
 		}
 		n60ldiff := t.LogScaledFrequencyForMidiNote(60) - mapped.LogScaledFrequencyForMidiNote(60)
 		for j := 0; j < 128; j++ {
-//			fmt.Printf("mn:%v, freq:%v, j:%v, %s\n\nt:%#v\n\nmapped:%#v\n", mn,freq,j, approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(j) - mapped.LogScaledFrequencyForMidiNote(j),
-//				n60ldiff),t.FrequencyForMidiNote(j),mapped.FrequencyForMidiNote(j))
 			assert.Equal(tt,"",approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(j) - mapped.LogScaledFrequencyForMidiNote(j),
-				n60ldiff), "mn:%v, freq:%v, j:%v", mn,freq,j)
+				n60ldiff), "mn:%v, freq:%v, j:%v,tl:%v,mappedl:%v", mn,freq,j,t.LogScaledFrequencyForMidiNote(j),mapped.LogScaledFrequencyForMidiNote(j))
 		}
 	}
 }
