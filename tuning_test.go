@@ -208,7 +208,7 @@ func TestInternalConstraintsSCLAndKBM(tt *testing.T) {
 			var s Scale
 			var t Tuning
 			var err error
-			//fmt.Printf("DEBUG: test %s %s\n", sclFname,kbmFname)
+
 			s, err = ReadSCLFile(testFile(sclFname))
 			assert.NilError(tt, err)
 			k, err = ReadKBMFile(testFile(kbmFname))
@@ -240,7 +240,7 @@ func TestInternalConstraintsSCLAndKBMMisatched(tt *testing.T) {
 			var k KeyboardMapping
 			var s Scale
 			var err error
-			//fmt.Printf("DEBUG: test %s %s\n", sclFname,kbmFname)
+
 			s, err = ReadSCLFile(testFile(sclFname))
 			assert.NilError(tt, err)
 			k, err = ReadKBMFile(testFile(kbmFname))
@@ -400,10 +400,10 @@ func TestRemappingFreqWithNon12Scales6Exact(tt *testing.T) {
 		}
 		n60ldiff := t.LogScaledFrequencyForMidiNote(60) - mapped.LogScaledFrequencyForMidiNote(60)
 		for j := 0; j < 128; j++ {
-			fmt.Printf("mn:%v, freq:%v, j:%v, %s\n\nt:%#v\n\nmapped:%#v\n", mn,freq,j, approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(j) - mapped.LogScaledFrequencyForMidiNote(j),
-				n60ldiff),t.FrequencyForMidiNote(j),mapped.FrequencyForMidiNote(j))
-//			assert.Equal(tt,"",approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(j) - mapped.LogScaledFrequencyForMidiNote(j),
-//				n60ldiff), "mn:%v, freq:%v, j:%v", mn,freq,j)
+//			fmt.Printf("mn:%v, freq:%v, j:%v, %s\n\nt:%#v\n\nmapped:%#v\n", mn,freq,j, approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(j) - mapped.LogScaledFrequencyForMidiNote(j),
+//				n60ldiff),t.FrequencyForMidiNote(j),mapped.FrequencyForMidiNote(j))
+			assert.Equal(tt,"",approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(j) - mapped.LogScaledFrequencyForMidiNote(j),
+				n60ldiff), "mn:%v, freq:%v, j:%v", mn,freq,j)
 		}
 	}
 }
@@ -615,11 +615,105 @@ func TestBadFilesBadKBM(tt *testing.T) {
 }
 
 // Built in Generators - ED2
+func TestBuiltinGeneratorsED2(tt *testing.T) {
+	var err error
+	var s Scale
+	s,err = evenDivisionOfSpanByM(2,12)
+	assert.NilError(tt,err)
+	assert.Equal(tt,s.Count, 12)
+	assert.Check(tt,len(s.RawText) > 1)
+	var t,ut Tuning
+	ut,err = CreateStandardTuning()
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	for i := 0; i < 128; i++ {
+		assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(i), ut.LogScaledFrequencyForMidiNote(i)), "i:%d",i)
+	}
+}
+
 // Built in Generators - ED3-17
+func TestBuiltinGeneratorsED317(tt *testing.T) {
+	var err error
+	var s,sf Scale
+	s,err = evenDivisionOfSpanByM(3,17)
+	assert.NilError(tt,err)
+	sf,err = ReadSCLFile(testFile("ED3-17.scl"))
+	assert.NilError(tt,err)
+	var t,ut Tuning
+	ut,err = CreateTuningFromSCL(sf)
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	for i := 0; i < 128; i++ {
+		assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(i), ut.LogScaledFrequencyForMidiNote(i)), "i:%d",i)
+	}
+}
+
 // Built in Generators - ED4-17
+func TestBuiltinGeneratorsED417(tt *testing.T) {
+	var err error
+	var s,sf Scale
+	s,err = evenDivisionOfSpanByM(4,17)
+	assert.NilError(tt,err)
+	sf,err = ReadSCLFile(testFile("ED4-17.scl"))
+	assert.NilError(tt,err)
+	var t,ut Tuning
+	ut,err = CreateTuningFromSCL(sf)
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	for i := 0; i < 128; i++ {
+		assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(i), ut.LogScaledFrequencyForMidiNote(i)), "i:%d",i)
+	}
+}
+
 // Built in Generators - Constraints on random EDN-M
+func TestBuiltinGeneratorsRandonEDNMConstraints(tt *testing.T) {
+	for i := 0; i<100; i++ {
+		span := int(rand.Uint32() % 7 + 2)
+		m := int(rand.Uint32() % 50 + 3)
+
+		var s Scale
+		var t Tuning
+		var err error
+
+		s,err = evenDivisionOfSpanByM(span, m)
+		assert.NilError(tt, err)
+		assert.Equal(tt,s.Count, m)
+		assert.Check(tt,len(s.RawText) > 1)
+
+		t,err = CreateTuningFromSCL(s)
+		assert.NilError(tt, err)
+		assert.Equal(tt, "", approxEqual(1e-7, t.FrequencyForMidiNoteScaledByMidi0(60) * float64(span),
+			t.FrequencyForMidiNoteScaledByMidi0(60+m)), "i:%v,span:%v,m:%v",i,span,m)
+		d0 := t.LogScaledFrequencyForMidiNote(1) - t.LogScaledFrequencyForMidiNote(0)
+		for j := 1; j<128; j++ {
+			d := t.LogScaledFrequencyForMidiNote(j) - t.LogScaledFrequencyForMidiNote(j-1)
+			assert.Equal(tt, "", approxEqual(1e-7, d, d0),"i:%v,j:%v,span:%v,m:%v",i,j,span,m)
+		}
+	}
+}
+
 // Built in Generators - EDMN Errors
-// Built in Generators - KBM Generator
+func TestBuiltinGeneratorsEDMNError(tt *testing.T) {
+	var err error
+	_,err = evenDivisionOfSpanByM(0, 12)
+	assert.ErrorContains(tt,err,"Span must be a positive number")
+	_,err = evenDivisionOfSpanByM(2, 0)
+	assert.ErrorContains(tt,err,"must divide the period into at least one step")
+	_,err = evenDivisionOfSpanByM(0, 0)
+	assert.ErrorContains(tt,err,"Span must be a positive number")
+
+	_,err = evenDivisionOfSpanByM(-1, 12)
+	assert.ErrorContains(tt,err,"Span must be a positive number")
+	_,err = evenDivisionOfSpanByM(2, -1)
+	assert.ErrorContains(tt,err,"must divide the period into at least one step")
+	_,err = evenDivisionOfSpanByM(-1, -1)
+	assert.ErrorContains(tt,err,"Span must be a positive number")
+}
+
+
 
 // Dos Line Endings and Blanks - SCL
 func TestDosSCL(tt *testing.T) {

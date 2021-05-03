@@ -2,6 +2,8 @@ package scala
 
 import (
 	"gotest.tools/v3/assert"
+	"math"
+	"math/rand"
 	"testing"
 )
 
@@ -48,4 +50,23 @@ func TestReparseKBMRawText(tt *testing.T) {
 	assert.Equal(tt, k.TuningConstantNote, kparse.TuningConstantNote)
 	assert.Equal(tt, k.TuningFrequency, kparse.TuningFrequency)
 	assert.Equal(tt, k.OctaveDegrees, kparse.OctaveDegrees)
+}
+
+
+// Built in Generators - KBM Generator
+func TestBuiltinGeneratorsKBMGenerator(tt *testing.T) {
+	for i := 0; i<100; i++ {
+		n := int(rand.Uint32()%60 + 30)
+		fr := 1000.0 * float64(rand.Uint32()/math.MaxUint32+50)
+
+		var k KeyboardMapping
+		var err error
+
+		k, err = tuneNoteTo(n, fr)
+		assert.NilError(tt, err)
+		assert.Equal(tt, k.TuningConstantNote, n)
+		assert.Equal(tt, k.TuningFrequency, fr)
+		assert.Equal(tt, k.TuningPitch, k.TuningFrequency/Midi0Freq)
+		assert.Check(tt, len(k.RawText) > 1)
+	}
 }

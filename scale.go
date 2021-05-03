@@ -233,6 +233,7 @@ func evenDivisionOfSpanByM(span int, m int) (scale Scale, err error) {
 		return
 	}
 	buf := "! Automatically generated ED " + strconv.Itoa(span) + "-" + strconv.Itoa(m) + " scale\n"
+	buf += "Automatically generated ED " + strconv.Itoa(span) + "-" + strconv.Itoa(m) + " scale\n"
 	buf += strconv.Itoa(m) + "\n"
 	buf += "!\n"
 
