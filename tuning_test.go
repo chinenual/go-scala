@@ -216,7 +216,7 @@ func TestInternalConstraintsSCLAndKBM(tt *testing.T) {
 
 			if k.OctaveDegrees > s.Count {
 				// don't test this combo; trap it below as an error case
-				continue;
+				continue
 			}
 
 			t, err = CreateTuningFromSCLAndKBM(s,k)
@@ -248,7 +248,7 @@ func TestInternalConstraintsSCLAndKBMMisatched(tt *testing.T) {
 
 			if k.OctaveDegrees <= s.Count {
 				// don't test this combo; we only want to test the error cases
-				continue;
+				continue
 			}
 			testedAtLeastOne = true
 			_, err = CreateTuningFromSCLAndKBM(s,k)
@@ -372,10 +372,143 @@ func TestSampleScalesCarlosAlpha(tt *testing.T) {
 }
 
 // Remapping frequency with non-12-length scales - 6 exact
-// Remapping frequency with non-12-length scales - 31 edo
-// Remapping frequency with non-12-length scales - ED4-17
-// Remapping frequency with non-12-length scales - ED3-17
+func TestRemappingFreqWithNon12Scales6Exact(tt *testing.T) {
+	var s Scale
+	var err error
+	var t Tuning
+	s,err = ReadSCLFile(testFile("6-exact.scl"))
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	for i := 0; i<100; i++ {
+		mn := int(rand.Uint32() % 40 + 40)
+		freq := 150.0 + 300.0 * float64(rand.Uint32()) / float64(math.MaxUint32)
+		var k KeyboardMapping
+		k,err = tuneNoteTo(mn, freq)
+		assert.NilError(tt,err)
+		var mapped Tuning
+		mapped,err = CreateTuningFromSCLAndKBM(s,k)
+		assert.NilError(tt,err)
 
+		assert.Equal(tt,"",approxEqual(1e-6, mapped.FrequencyForMidiNote(mn), freq), "mn:%v, freq:%v", mn,freq)
+
+		// This scale is monotonic so test monotonicity still
+		for ii := 1; ii<127; ii++ {
+			if mapped.FrequencyForMidiNote(ii) > 1.0 {
+				assert.Check(tt,mapped.FrequencyForMidiNote(ii)>mapped.FrequencyForMidiNote(ii-1), "mn:%v, freq:%v, ii:%v", mn,freq,ii)
+			}
+		}
+		n60ldiff := t.LogScaledFrequencyForMidiNote(60) - mapped.LogScaledFrequencyForMidiNote(60)
+		for j := 0; j < 128; j++ {
+			fmt.Printf("mn:%v, freq:%v, j:%v, %s\n\nt:%#v\n\nmapped:%#v\n", mn,freq,j, approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(j) - mapped.LogScaledFrequencyForMidiNote(j),
+				n60ldiff),t.FrequencyForMidiNote(j),mapped.FrequencyForMidiNote(j))
+//			assert.Equal(tt,"",approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(j) - mapped.LogScaledFrequencyForMidiNote(j),
+//				n60ldiff), "mn:%v, freq:%v, j:%v", mn,freq,j)
+		}
+	}
+}
+// Remapping frequency with non-12-length scales - 31 edo
+func TestRemappingFreqWithNon12Scales31Edo(tt *testing.T) {
+	var s Scale
+	var err error
+	var t Tuning
+	s,err = ReadSCLFile(testFile("31edo.scl"))
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	for i := 0; i<100; i++ {
+		mn := int(rand.Uint32() % 20 + 50)
+		freq := 150.0 + 300.0 * float64(rand.Uint32()) / float64(math.MaxUint32)
+		var k KeyboardMapping
+		k,err = tuneNoteTo(mn, freq)
+		assert.NilError(tt,err)
+		var mapped Tuning
+		mapped,err = CreateTuningFromSCLAndKBM(s,k)
+		assert.NilError(tt,err)
+
+		assert.Equal(tt,"",approxEqual(1e-6, mapped.FrequencyForMidiNote(mn), freq), "mn:%v, freq:%v", mn,freq)
+
+		// This scale is monotonic so test monotonicity still
+		for ii := 1; ii<127; ii++ {
+			if mapped.FrequencyForMidiNote(ii) > 1.0 {
+				assert.Check(tt,mapped.FrequencyForMidiNote(ii)>mapped.FrequencyForMidiNote(ii-1), "mn:%v, freq:%v, ii:%v", mn,freq,ii)
+			}
+		}
+		n60ldiff := t.LogScaledFrequencyForMidiNote(60) - mapped.LogScaledFrequencyForMidiNote(60)
+		for j := 0; j < 128; j++ {
+			assert.Equal(tt,"",approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(j) - mapped.LogScaledFrequencyForMidiNote(j),
+				n60ldiff), "mn:%v, freq:%v, j:%v", mn,freq,j)
+		}
+	}
+}
+// Remapping frequency with non-12-length scales - ED4-17
+func TestRemappingFreqWithNon12ScalesED417(tt *testing.T) {
+	var s Scale
+	var err error
+	var t Tuning
+	s,err = ReadSCLFile(testFile("ED4-17.scl"))
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	for i := 0; i<100; i++ {
+		mn := int(rand.Uint32() % 40 + 40)
+		freq := 150.0 + 300.0 * float64(rand.Uint32()) / float64(math.MaxUint32)
+		var k KeyboardMapping
+		k,err = tuneNoteTo(mn, freq)
+		assert.NilError(tt,err)
+		var mapped Tuning
+		mapped,err = CreateTuningFromSCLAndKBM(s,k)
+		assert.NilError(tt,err)
+
+		assert.Equal(tt,"",approxEqual(1e-6, mapped.FrequencyForMidiNote(mn), freq), "mn:%v, freq:%v", mn,freq)
+
+		// This scale is monotonic so test monotonicity still
+		for ii := 1; ii<127; ii++ {
+			if mapped.FrequencyForMidiNote(ii) > 1.0 {
+				assert.Check(tt,mapped.FrequencyForMidiNote(ii)>mapped.FrequencyForMidiNote(ii-1), "mn:%v, freq:%v, ii:%v", mn,freq,ii)
+			}
+		}
+		n60ldiff := t.LogScaledFrequencyForMidiNote(60) - mapped.LogScaledFrequencyForMidiNote(60)
+		for j := 0; j < 128; j++ {
+			assert.Equal(tt,"",approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(j) - mapped.LogScaledFrequencyForMidiNote(j),
+				n60ldiff), "mn:%v, freq:%v, j:%v", mn,freq,j)
+		}
+	}
+}
+// Remapping frequency with non-12-length scales - ED3-17
+func TestRemappingFreqWithNon12ScalesED317(tt *testing.T) {
+	var s Scale
+	var err error
+	var t Tuning
+	s,err = ReadSCLFile(testFile("ED3-17.scl"))
+	assert.NilError(tt,err)
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	for i := 0; i<100; i++ {
+		mn := int(rand.Uint32() % 40 + 40)
+		freq := 150.0 + 300.0 * float64(rand.Uint32()) / float64(math.MaxUint32)
+		var k KeyboardMapping
+		k,err = tuneNoteTo(mn, freq)
+		assert.NilError(tt,err)
+		var mapped Tuning
+		mapped,err = CreateTuningFromSCLAndKBM(s,k)
+		assert.NilError(tt,err)
+
+		assert.Equal(tt,"",approxEqual(1e-6, mapped.FrequencyForMidiNote(mn), freq), "mn:%v, freq:%v", mn,freq)
+
+		// This scale is monotonic so test monotonicity still
+		for ii := 1; ii<127; ii++ {
+			if mapped.FrequencyForMidiNote(ii) > 1.0 {
+				assert.Check(tt,mapped.FrequencyForMidiNote(ii)>mapped.FrequencyForMidiNote(ii-1), "mn:%v, freq:%v, ii:%v", mn,freq,ii)
+			}
+		}
+		n60ldiff := t.LogScaledFrequencyForMidiNote(60) - mapped.LogScaledFrequencyForMidiNote(60)
+		for j := 0; j < 128; j++ {
+			assert.Equal(tt,"",approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(j) - mapped.LogScaledFrequencyForMidiNote(j),
+				n60ldiff), "mn:%v, freq:%v, j:%v", mn,freq,j)
+		}
+	}
+}
 // KBMs with Gaps - 12 Intune with Gap
 
 // KBM ReOrdering - Non Monotonic KBM note
