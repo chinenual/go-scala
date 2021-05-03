@@ -1,3 +1,6 @@
+![Go](https://github.com/chinenual/go-scala/workflows/Go/badge.svg)
+[![GoReportCard](http://goreportcard.com/badge/github.com/chinenual/go-scala)](http://goreportcard.com/report/github.com/chinenual/go-scala)
+
 # go-scala
 A pure Go library to parse Scala SCL and KBM files to support microtunings
 
