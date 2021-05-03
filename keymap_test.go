@@ -12,7 +12,7 @@ func TestKeymapFromString(t *testing.T) {
 	kbm, err := KeyboardMappingFromKBMString(`! A scale file
 ! with zero size
 0
-! spanning the keybaord
+! spanning the keyboard
 0
 127
 ! With C60 as constant and A as 452
