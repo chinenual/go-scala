@@ -510,9 +510,67 @@ func TestRemappingFreqWithNon12ScalesED317(tt *testing.T) {
 	}
 }
 // KBMs with Gaps - 12 Intune with Gap
+func TestKBMsWithGaps12Intune(tt *testing.T) {
+	var err error
+	var s Scale
+	var k KeyboardMapping
+	var t, tm Tuning
+
+	s,err = ReadSCLFile(testFile("12-intune.scl"))
+	assert.NilError(tt,err)
+	k,err = ReadKBMFile(testFile("mapping-whitekeys-c261.kbm"))
+	assert.NilError(tt,err)
+
+	t,err = CreateTuningFromSCL(s)
+	assert.NilError(tt,err)
+	tm,err = CreateTuningFromSCLAndKBM(s,k)
+	assert.NilError(tt,err)
+
+	assert.Equal(tt, s.Count, 12)
+	assert.Equal(tt, "", approxEqual(1e-6, t.FrequencyForMidiNote(69), 440.0))
+
+	maps := map[int]int{
+		60: 60,
+		61: 62,
+		62: 64,
+		63: 65,
+		64: 67,
+		65: 69,
+		66: 71,
+	}
+	for first,second := range maps {
+		assert.Equal(tt, "", approxEqual(1e-5, t.LogScaledFrequencyForMidiNote(first),
+			tm.LogScaledFrequencyForMidiNote(second)), "first:%d,second:%d",first,second)
+
+	}
+}
 
 // KBM ReOrdering - Non Monotonic KBM note
+func TestKBMReorderingNoMonotonicKBMNote(tt *testing.T) {
+	var err error
+	var s Scale
+	var k KeyboardMapping
+	var t Tuning
 
+	s, err = ReadSCLFile(testFile("12-intune.scl"))
+	assert.NilError(tt, err)
+	k, err = ReadKBMFile(testFile("shuffle-a440-constant.kbm"))
+	assert.NilError(tt, err)
+
+	t, err = CreateTuningFromSCLAndKBM(s, k)
+	assert.NilError(tt, err)
+
+	assert.Equal(tt, s.Count, 12)
+	assert.Equal(tt, "", approxEqual(1e-6, t.FrequencyForMidiNote(69), 440.0))
+
+	order := []float64 {0, 2, 1, 3, 4, 6, 5, 7, 8, 9, 11, 10, 12}
+	l60 := t.LogScaledFrequencyForMidiNote(60)
+	for i,oi := range order {
+		li := t.LogScaledFrequencyForMidiNote(60+i)
+		assert.Equal(tt, "", approxEqual(1e-6, li-l60, oi/12.0), "i:%d,oi:%v",i,oi)
+
+	}
+}
 // Exceptions and Bad Files - Read Non-present files
 // Exceptions and Bad Files - Bad SCL
 // Exceptions and Bad Files - Bad KBM
