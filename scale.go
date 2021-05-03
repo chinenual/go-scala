@@ -14,18 +14,18 @@ import (
 
 const Midi0Freq = 8.17579891564371 // or 440.0 * pow( 2.0, - (69.0/12.0 ) )
 
-type ToneType int
+type toneType int
 const (
-	ToneCents ToneType = iota
-	ToneRatio
+	toneCents toneType = iota
+	toneRatio
 )
 
-// A Tone is a single entry in an SCL file. It is expressed either in cents or in
+// A tone is a single entry in an SCL file. It is expressed either in cents or in
 // a ratio, as described in the SCL documentation.
 //
 // In most normal use, you will not use this interface, and it will be internal to a Scale
-type Tone struct {
-	Type       ToneType
+type tone struct {
+	Type       toneType
 	Cents      float64
 	RatioD     int
 	RatioN     int
@@ -45,23 +45,23 @@ type Scale struct {
 	Description string // The description in the SCL file. Informational only
 	RawText     string // The raw text of the SCL file used to create this Scale
 	Count       int    // The number of tones.
-	Tones       []Tone // The tones
+	Tones       []tone // The tones
 }
 
 
 
 
 
-func toneFromString(line string, lineno int) (tone Tone, err error) {
+func toneFromString(line string, lineno int) (tone tone, err error) {
 	if strings.Contains(line, ".") {
-		tone.Type = ToneCents
+		tone.Type = toneCents
 		if tone.Cents,err = strconv.ParseFloat(strings.TrimSpace(line), 64); err != nil {
 			err = errors.Wrapf(err, "Error parsing scale cent: \"%s\", line %d", line, lineno)
 			return
 		}
 	} else {
 		var v int64
-		tone.Type = ToneRatio
+		tone.Type = toneRatio
 		split := strings.Split(line,"/")
 		if split != nil && len(split) == 1 {
 			if v, err = strconv.ParseInt(strings.TrimSpace(split[0]), 10, 32); err != nil {
@@ -92,14 +92,14 @@ func toneFromString(line string, lineno int) (tone Tone, err error) {
 
 		// 2^(cents/1200) = n/d
 		// cents = 1200 * log(n/d) / log(2)
-		tone.Cents = 1200 * math.Log(float64(tone.RatioN)/float64(tone.RatioD)) / math.Log(2.0);
+		tone.Cents = 1200 * math.Log(float64(tone.RatioN)/float64(tone.RatioD)) / math.Log(2.0)
 	}
 	tone.FloatValue = (tone.Cents / 1200.0) + 1.0
 	return
 }
 
-// ReadSCLStream returns a Scale from the SCL input stream
-func ReadSCLStream(rdr io.Reader) (scale Scale, err error) {
+// ScaleFromSCLStream returns a Scale from the SCL input stream
+func ScaleFromSCLStream(rdr io.Reader) (scale Scale, err error) {
 	type stateType int
 	const (
 		readHeader stateType = iota
@@ -143,7 +143,7 @@ func ReadSCLStream(rdr io.Reader) (scale Scale, err error) {
 			scale.Count = int(v)
 			state = readNote
 		case readNote:
-			var tone Tone
+			var tone tone
 			if tone,err = toneFromString(line, lineno); err != nil {
 				return
 			}
@@ -168,15 +168,15 @@ func ReadSCLStream(rdr io.Reader) (scale Scale, err error) {
 	return
 }
 
-// ReadSCLFile returns a Scale from the SCL File in fname
-func ReadSCLFile(fname string) (scale Scale, err error) {
+// ScaleFromSCLFile returns a Scale from the SCL File in fname
+func ScaleFromSCLFile(fname string) (scale Scale, err error) {
 	var file *os.File
 	if file, err = os.Open(fname); err != nil {
 		err = errors.Wrapf(err, "Unable to open file '%s'", fname)
 		return
 	}
 	defer file.Close()
-	if scale,err = ReadSCLStream(file); err != nil {
+	if scale,err = ScaleFromSCLStream(file); err != nil {
 		err = errors.Wrapf(err, "Unable to parse file '%s'", fname)
 		return
 	}
@@ -184,22 +184,22 @@ func ReadSCLFile(fname string) (scale Scale, err error) {
 	return
 }
 
-// ParseSCLData returns a scale from the SCL file contents in memory
-func ParseSCLData(sclContents string) (scale Scale, err error) {
+// ScaleFromSCLString returns a scale from the SCL file contents in memory
+func ScaleFromSCLString(sclContents string) (scale Scale, err error) {
 	rdr := strings.NewReader(sclContents)
-	if scale,err = ReadSCLStream(rdr); err != nil {
+	if scale,err = ScaleFromSCLStream(rdr); err != nil {
 		return
 	}
 	scale.Name = "Scale from patch"
 	return
 }
 
-// evenTemperament12NoteScale provides a utility scale which is
+// ScaleEvenTemperment12NoteScale provides a utility scale which is
 // the "standard tuning" scale
-func evenTemperment12NoteScale() (scale Scale, err error) {
-	if scale,err = ParseSCLData(`! 12 Tone Equal Temperament.scl
+func ScaleEvenTemperment12NoteScale() (scale Scale, err error) {
+	if scale,err = ScaleFromSCLString(`! 12 tone Equal Temperament.scl
 !
-12 Tone Equal Temperament | ED2-12 - Equal division of harmonic 2 into 12 parts
+12 tone Equal Temperament | ED2-12 - Equal division of harmonic 2 into 12 parts
  12
 !
  100.00000
@@ -220,10 +220,10 @@ func evenTemperment12NoteScale() (scale Scale, err error) {
 	return
 }
 
-// evenDivisionOfSpanByM provides a scale referred to as "ED2-17" or
+// ScaleEvenDivisionOfSpanByM provides a scale referred to as "ED2-17" or
 // "ED3-24" by dividing the Span into M points. eventDivisionOfSpanByM(2,12)
 // should be the evenTemperament12NoteScale
-func evenDivisionOfSpanByM(span int, m int) (scale Scale, err error) {
+func ScaleEvenDivisionOfSpanByM(span int, m int) (scale Scale, err error) {
 	if span <= 0 {
 		err = errors.Errorf("Span must be a positive number: %d", span)
 		return
@@ -244,7 +244,7 @@ func evenDivisionOfSpanByM(span int, m int) (scale Scale, err error) {
 	}
 	buf += strconv.Itoa(span) + "/1\n"
 
-	if scale,err = ParseSCLData(buf); err != nil {
+	if scale,err = ScaleFromSCLString(buf); err != nil {
 		return
 	}
 

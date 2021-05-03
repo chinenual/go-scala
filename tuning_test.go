@@ -55,10 +55,10 @@ func TestIdentity12Intune(tt *testing.T) {
 	var s Scale
 	var t Tuning
 	var err error
-	s,err = ReadSCLFile(testFile("12-intune.scl"))
+	s,err = ScaleFromSCLFile(testFile("12-intune.scl"))
 	assert.NilError(tt, err)
 	assert.Equal(tt, s.Count, 12)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt, err)
 	assert.Equal(tt, "", approxEqual(1e-6 /*orig:1e-10*/, t.FrequencyForMidiNote( 69 ), 440.0))
 	assert.Equal(tt, "", approxEqual(1e-6 /*orig:==*/, t.FrequencyForMidiNoteScaledByMidi0( 60 ), 32.0 ))
@@ -70,9 +70,9 @@ func TestIdentity12IntuneDoubles(tt *testing.T) {
 	var s Scale
 	var t Tuning
 	var err error
-	s,err = ReadSCLFile(testFile("12-intune.scl"))
+	s,err = ScaleFromSCLFile(testFile("12-intune.scl"))
 	assert.NilError(tt, err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt, err)
 	for i:= 0; i < 12; i++ {
 		note := -12 * 4 + i
@@ -95,9 +95,9 @@ func TestScalingIsConstant(tt *testing.T) {
 	var s Scale
 	var t Tuning
 	var err error
-	s,err = ReadSCLFile(testFile("12-intune.scl"))
+	s,err = ScaleFromSCLFile(testFile("12-intune.scl"))
 	assert.NilError(tt, err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt, err)
 
 	f60 := t.FrequencyForMidiNote(60)
@@ -114,9 +114,9 @@ func TestKeyboardRemappingA69A440(tt *testing.T) {
 	var k KeyboardMapping
 	var t Tuning
 	var err error
-	k, err = tuneA69To(440.0)
+	k, err = KeyboardMappingTuneA69To(440.0)
 	assert.NilError(tt, err)
-	t,err = CreateTuningFromKBM(k)
+	t,err = TuningFromKBM(k)
 	assert.NilError(tt, err)
 	assert.Equal(tt, "", approxEqual(1e-10, t.FrequencyForMidiNote(69), 440.0))
 	assert.Equal(tt, "", approxEqual(1e-9/*orig:1-10*/, t.FrequencyForMidiNote(60), 261.625565301))
@@ -127,9 +127,9 @@ func TestKeyboardRemappingA69A432(tt *testing.T) {
 	var k KeyboardMapping
 	var t Tuning
 	var err error
-	k, err = tuneA69To(432.0)
+	k, err = KeyboardMappingTuneA69To(432.0)
 	assert.NilError(tt, err)
-	t,err = CreateTuningFromKBM(k)
+	t,err = TuningFromKBM(k)
 	assert.NilError(tt, err)
 	assert.Equal(tt, "", approxEqual(1e-10, t.FrequencyForMidiNote(69), 432.0))
 	assert.Equal(tt, "", approxEqual(1e-9/*orig:1e-10*/, t.FrequencyForMidiNote(60), 261.625565301 * 432.0 / 440.0))
@@ -139,16 +139,16 @@ func TestKeyboardRemappingA69A432(tt *testing.T) {
 func TestRandomAsScaleConsistently(tt *testing.T) {
 	var ut Tuning
 	var err error
-	ut, err = CreateStandardTuning()
+	ut, err = TuningEvenStandard()
 	assert.NilError(tt, err)
 
 	for i := 0; i < 100; i++ {
 		fr := 400.0 + 80.0 * float64(rand.Int31() / math.MaxInt32)
 		var k KeyboardMapping
 		var t Tuning
-		k, err = tuneA69To(fr)
+		k, err = KeyboardMappingTuneA69To(fr)
 		assert.NilError(tt, err)
-		t, err = CreateTuningFromKBM(k)
+		t, err = TuningFromKBM(k)
 		assert.NilError(tt, err)
 		assert.Equal(tt, "", approxEqual(1e-10, t.FrequencyForMidiNote(69), fr), "i==%d", i)
 		assert.Equal(tt, "", approxEqual(1e-9/*orig:1e-10*/, t.FrequencyForMidiNote(60), 261.625565301  * fr / 440.0), "i==%d", i)
@@ -170,9 +170,9 @@ func TestInternalConstraintsSCL(tt *testing.T) {
 		var s Scale
 		var t Tuning
 		var err error
-		s,err = ReadSCLFile(testFile(sclFname))
+		s,err = ScaleFromSCLFile(testFile(sclFname))
 		assert.NilError(tt,err)
-		t,err = CreateTuningFromSCL(s)
+		t,err = TuningFromSCL(s)
 		assert.NilError(tt,err)
 		for i := 0; i < 127; i++ {
 			assert.Equal(tt, t.FrequencyForMidiNote(i), t.FrequencyForMidiNoteScaledByMidi0(i) * Midi0Freq, "scl:%s",sclFname)
@@ -186,9 +186,9 @@ func TestInternalConstraintsKBM(tt *testing.T) {
 		var k KeyboardMapping
 		var t Tuning
 		var err error
-		k,err = ReadKBMFile(testFile(kbmFname))
+		k,err = KeyboardMappingFromKBMFile(testFile(kbmFname))
 		assert.NilError(tt,err)
-		t,err = CreateTuningFromKBM(k)
+		t,err = TuningFromKBM(k)
 		assert.NilError(tt,err)
 		for i := 0; i < 127; i++ {
 			assert.Equal(tt, t.FrequencyForMidiNote(i), t.FrequencyForMidiNoteScaledByMidi0(i) * Midi0Freq, "scl:%s",kbmFname)
@@ -205,9 +205,9 @@ func TestInternalConstraintsSCLAndKBM(tt *testing.T) {
 			var t Tuning
 			var err error
 
-			s, err = ReadSCLFile(testFile(sclFname))
+			s, err = ScaleFromSCLFile(testFile(sclFname))
 			assert.NilError(tt, err)
-			k, err = ReadKBMFile(testFile(kbmFname))
+			k, err = KeyboardMappingFromKBMFile(testFile(kbmFname))
 			assert.NilError(tt, err)
 
 			if k.OctaveDegrees > s.Count {
@@ -215,7 +215,7 @@ func TestInternalConstraintsSCLAndKBM(tt *testing.T) {
 				continue
 			}
 
-			t, err = CreateTuningFromSCLAndKBM(s,k)
+			t, err = TuningFromSCLAndKBM(s,k)
 			assert.NilError(tt, err)
 
 			for i := 0; i < 127; i++ {
@@ -237,9 +237,9 @@ func TestInternalConstraintsSCLAndKBMMisatched(tt *testing.T) {
 			var s Scale
 			var err error
 
-			s, err = ReadSCLFile(testFile(sclFname))
+			s, err = ScaleFromSCLFile(testFile(sclFname))
 			assert.NilError(tt, err)
-			k, err = ReadKBMFile(testFile(kbmFname))
+			k, err = KeyboardMappingFromKBMFile(testFile(kbmFname))
 			assert.NilError(tt, err)
 
 			if k.OctaveDegrees <= s.Count {
@@ -247,7 +247,7 @@ func TestInternalConstraintsSCLAndKBMMisatched(tt *testing.T) {
 				continue
 			}
 			testedAtLeastOne = true
-			_, err = CreateTuningFromSCLAndKBM(s,k)
+			_, err = TuningFromSCLAndKBM(s,k)
 			assert.ErrorContains(tt, err, "Unable to apply mapping of size","scl:%s, kbm:%s", sclFname, kbmFname)
 		}
 	}
@@ -259,9 +259,9 @@ func TestSampleScalesNonMonotonic12Note(tt *testing.T) {
 	var s Scale
 	var err error
 	var t Tuning
-	s,err = ReadSCLFile(testFile("12-shuffled.scl"))
+	s,err = ScaleFromSCLFile(testFile("12-shuffled.scl"))
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 	assert.Equal(tt, s.Count, 12)
 	assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(60), 5.0))
@@ -278,9 +278,9 @@ func TestSampleScales31Edo(tt *testing.T) {
 	var s Scale
 	var err error
 	var t Tuning
-	s,err = ReadSCLFile(testFile("31edo.scl"))
+	s,err = ScaleFromSCLFile(testFile("31edo.scl"))
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 	assert.Equal(tt, s.Count, 31)
 	assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(60), 5.0))
@@ -297,9 +297,9 @@ func TestSampleScalesEd317(tt *testing.T) {
 	var s Scale
 	var err error
 	var t Tuning
-	s,err = ReadSCLFile(testFile("ED3-17.scl"))
+	s,err = ScaleFromSCLFile(testFile("ED3-17.scl"))
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 	assert.Equal(tt, s.Count, 17)
 	assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(60), 5.0))
@@ -316,9 +316,9 @@ func TestSampleScalesEd417(tt *testing.T) {
 	var s Scale
 	var err error
 	var t Tuning
-	s,err = ReadSCLFile(testFile("ED4-17.scl"))
+	s,err = ScaleFromSCLFile(testFile("ED4-17.scl"))
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 	assert.Equal(tt, s.Count, 17)
 	assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(60), 5.0))
@@ -335,9 +335,9 @@ func TestSampleScales6Exact(tt *testing.T) {
 	var s Scale
 	var err error
 	var t Tuning
-	s,err = ReadSCLFile(testFile("6-exact.scl"))
+	s,err = ScaleFromSCLFile(testFile("6-exact.scl"))
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 	assert.Equal(tt, s.Count, 6)
 	assert.Equal(tt, "", approxEqual(1e-5, t.LogScaledFrequencyForMidiNote(60), 5.0))
@@ -353,9 +353,9 @@ func TestSampleScalesCarlosAlpha(tt *testing.T) {
 	var s Scale
 	var err error
 	var t Tuning
-	s,err = ReadSCLFile(testFile("carlos-alpha.scl"))
+	s,err = ScaleFromSCLFile(testFile("carlos-alpha.scl"))
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 	assert.Equal(tt, s.Count, 1)
 	assert.Equal(tt, "", approxEqual(1e-5, t.LogScaledFrequencyForMidiNote(60), 5.0))
@@ -372,18 +372,18 @@ func TestRemappingFreqWithNon12Scales6Exact(tt *testing.T) {
 	var s Scale
 	var err error
 	var t Tuning
-	s,err = ReadSCLFile(testFile("6-exact.scl"))
+	s,err = ScaleFromSCLFile(testFile("6-exact.scl"))
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 	for i := 0; i<100; i++ {
 		mn := int(rand.Uint32() % 40 + 40)
 		freq := 150.0 + 300.0 * float64(rand.Uint32()) / float64(math.MaxUint32)
 		var k KeyboardMapping
-		k,err = tuneNoteTo(mn, freq)
+		k,err = KeyboardMappingTuneNoteTo(mn, freq)
 		assert.NilError(tt,err)
 		var mapped Tuning
-		mapped,err = CreateTuningFromSCLAndKBM(s,k)
+		mapped,err = TuningFromSCLAndKBM(s,k)
 		assert.NilError(tt,err)
 
 		assert.Equal(tt,"",approxEqual(1e-6, mapped.FrequencyForMidiNote(mn), freq), "mn:%v, freq:%v", mn,freq)
@@ -406,18 +406,18 @@ func TestRemappingFreqWithNon12Scales31Edo(tt *testing.T) {
 	var s Scale
 	var err error
 	var t Tuning
-	s,err = ReadSCLFile(testFile("31edo.scl"))
+	s,err = ScaleFromSCLFile(testFile("31edo.scl"))
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 	for i := 0; i<100; i++ {
 		mn := int(rand.Uint32() % 20 + 50)
 		freq := 150.0 + 300.0 * float64(rand.Uint32()) / float64(math.MaxUint32)
 		var k KeyboardMapping
-		k,err = tuneNoteTo(mn, freq)
+		k,err = KeyboardMappingTuneNoteTo(mn, freq)
 		assert.NilError(tt,err)
 		var mapped Tuning
-		mapped,err = CreateTuningFromSCLAndKBM(s,k)
+		mapped,err = TuningFromSCLAndKBM(s,k)
 		assert.NilError(tt,err)
 
 		assert.Equal(tt,"",approxEqual(1e-6, mapped.FrequencyForMidiNote(mn), freq), "mn:%v, freq:%v", mn,freq)
@@ -440,18 +440,18 @@ func TestRemappingFreqWithNon12ScalesED417(tt *testing.T) {
 	var s Scale
 	var err error
 	var t Tuning
-	s,err = ReadSCLFile(testFile("ED4-17.scl"))
+	s,err = ScaleFromSCLFile(testFile("ED4-17.scl"))
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 	for i := 0; i<100; i++ {
 		mn := int(rand.Uint32() % 40 + 40)
 		freq := 150.0 + 300.0 * float64(rand.Uint32()) / float64(math.MaxUint32)
 		var k KeyboardMapping
-		k,err = tuneNoteTo(mn, freq)
+		k,err = KeyboardMappingTuneNoteTo(mn, freq)
 		assert.NilError(tt,err)
 		var mapped Tuning
-		mapped,err = CreateTuningFromSCLAndKBM(s,k)
+		mapped,err = TuningFromSCLAndKBM(s,k)
 		assert.NilError(tt,err)
 
 		assert.Equal(tt,"",approxEqual(1e-6, mapped.FrequencyForMidiNote(mn), freq), "mn:%v, freq:%v", mn,freq)
@@ -474,18 +474,18 @@ func TestRemappingFreqWithNon12ScalesED317(tt *testing.T) {
 	var s Scale
 	var err error
 	var t Tuning
-	s,err = ReadSCLFile(testFile("ED3-17.scl"))
+	s,err = ScaleFromSCLFile(testFile("ED3-17.scl"))
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 	for i := 0; i<100; i++ {
 		mn := int(rand.Uint32() % 40 + 40)
 		freq := 150.0 + 300.0 * float64(rand.Uint32()) / float64(math.MaxUint32)
 		var k KeyboardMapping
-		k,err = tuneNoteTo(mn, freq)
+		k,err = KeyboardMappingTuneNoteTo(mn, freq)
 		assert.NilError(tt,err)
 		var mapped Tuning
-		mapped,err = CreateTuningFromSCLAndKBM(s,k)
+		mapped,err = TuningFromSCLAndKBM(s,k)
 		assert.NilError(tt,err)
 
 		assert.Equal(tt,"",approxEqual(1e-6, mapped.FrequencyForMidiNote(mn), freq), "mn:%v, freq:%v", mn,freq)
@@ -510,14 +510,14 @@ func TestKBMsWithGaps12Intune(tt *testing.T) {
 	var k KeyboardMapping
 	var t, tm Tuning
 
-	s,err = ReadSCLFile(testFile("12-intune.scl"))
+	s,err = ScaleFromSCLFile(testFile("12-intune.scl"))
 	assert.NilError(tt,err)
-	k,err = ReadKBMFile(testFile("mapping-whitekeys-c261.kbm"))
+	k,err = KeyboardMappingFromKBMFile(testFile("mapping-whitekeys-c261.kbm"))
 	assert.NilError(tt,err)
 
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
-	tm,err = CreateTuningFromSCLAndKBM(s,k)
+	tm,err = TuningFromSCLAndKBM(s,k)
 	assert.NilError(tt,err)
 
 	assert.Equal(tt, s.Count, 12)
@@ -546,12 +546,12 @@ func TestKBMReorderingNoMonotonicKBMNote(tt *testing.T) {
 	var k KeyboardMapping
 	var t Tuning
 
-	s, err = ReadSCLFile(testFile("12-intune.scl"))
+	s, err = ScaleFromSCLFile(testFile("12-intune.scl"))
 	assert.NilError(tt, err)
-	k, err = ReadKBMFile(testFile("shuffle-a440-constant.kbm"))
+	k, err = KeyboardMappingFromKBMFile(testFile("shuffle-a440-constant.kbm"))
 	assert.NilError(tt, err)
 
-	t, err = CreateTuningFromSCLAndKBM(s, k)
+	t, err = TuningFromSCLAndKBM(s, k)
 	assert.NilError(tt, err)
 
 	assert.Equal(tt, s.Count, 12)
@@ -568,9 +568,9 @@ func TestKBMReorderingNoMonotonicKBMNote(tt *testing.T) {
 // Exceptions and Bad Files - Read Non-present files
 func TestBadFilesNoPresent(tt *testing.T) {
 	var err error
-	_,err = ReadSCLFile("blahlfdsfds")
+	_,err = ScaleFromSCLFile("blahlfdsfds")
 	assert.ErrorContains(tt, err, "Unable to open file")
-	_,err = ReadKBMFile("blahlfdsfds")
+	_,err = KeyboardMappingFromKBMFile("blahlfdsfds")
 	assert.ErrorContains(tt, err, "Unable to open file")
 }
 
@@ -579,32 +579,32 @@ func TestBadFilesBadSCL(tt *testing.T) {
 	var err error
 
 	// Trailing data is OK
-	_, err = ReadSCLFile(testFile("bad/extraline.scl"))
+	_, err = ScaleFromSCLFile(testFile("bad/extraline.scl"))
 	assert.NilError(tt, err)
 
-	_, err = ReadSCLFile(testFile("bad/badnote.scl"))
+	_, err = ScaleFromSCLFile(testFile("bad/badnote.scl"))
 	assert.ErrorContains(tt, err, "Unable to parse file")
-	_, err = ReadSCLFile(testFile("bad/blanknote.scl"))
+	_, err = ScaleFromSCLFile(testFile("bad/blanknote.scl"))
 	assert.ErrorContains(tt, err, "Unable to parse file")
-	_, err = ReadSCLFile(testFile("bad/missingnote.scl"))
+	_, err = ScaleFromSCLFile(testFile("bad/missingnote.scl"))
 	assert.ErrorContains(tt, err, "Unable to parse file")
 }
 // Exceptions and Bad Files - Bad KBM
 func TestBadFilesBadKBM(tt *testing.T) {
 	var err error
-	_, err = ReadKBMFile(testFile("bad/blank-line.kbm"))
+	_, err = KeyboardMappingFromKBMFile(testFile("bad/blank-line.kbm"))
 	assert.ErrorContains(tt, err, "Unable to parse file")
-	_, err = ReadKBMFile(testFile("bad/empty-bad.kbm"))
+	_, err = KeyboardMappingFromKBMFile(testFile("bad/empty-bad.kbm"))
 	assert.ErrorContains(tt, err, "Unable to parse file")
-	_, err = ReadKBMFile(testFile("bad/garbage-key.kbm"))
+	_, err = KeyboardMappingFromKBMFile(testFile("bad/garbage-key.kbm"))
 	assert.ErrorContains(tt, err, "Unable to parse file")
 
-	_, err = ReadKBMFile(testFile("bad/empty-extra.kbm"))
+	_, err = KeyboardMappingFromKBMFile(testFile("bad/empty-extra.kbm"))
 	assert.NilError(tt, err)
-	_, err = ReadKBMFile(testFile("bad/extraline-long.kbm"))
+	_, err = KeyboardMappingFromKBMFile(testFile("bad/extraline-long.kbm"))
 	assert.NilError(tt, err)
 
-	_, err = ReadKBMFile(testFile("bad/missing-note.kbm"))
+	_, err = KeyboardMappingFromKBMFile(testFile("bad/missing-note.kbm"))
 	assert.ErrorContains(tt, err, "Unable to parse file")
 }
 
@@ -612,14 +612,14 @@ func TestBadFilesBadKBM(tt *testing.T) {
 func TestBuiltinGeneratorsED2(tt *testing.T) {
 	var err error
 	var s Scale
-	s,err = evenDivisionOfSpanByM(2,12)
+	s,err = ScaleEvenDivisionOfSpanByM(2,12)
 	assert.NilError(tt,err)
 	assert.Equal(tt,s.Count, 12)
 	assert.Check(tt,len(s.RawText) > 1)
 	var t,ut Tuning
-	ut,err = CreateStandardTuning()
+	ut,err = TuningEvenStandard()
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 	for i := 0; i < 128; i++ {
 		assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(i), ut.LogScaledFrequencyForMidiNote(i)), "i:%d",i)
@@ -630,14 +630,14 @@ func TestBuiltinGeneratorsED2(tt *testing.T) {
 func TestBuiltinGeneratorsED317(tt *testing.T) {
 	var err error
 	var s,sf Scale
-	s,err = evenDivisionOfSpanByM(3,17)
+	s,err = ScaleEvenDivisionOfSpanByM(3,17)
 	assert.NilError(tt,err)
-	sf,err = ReadSCLFile(testFile("ED3-17.scl"))
+	sf,err = ScaleFromSCLFile(testFile("ED3-17.scl"))
 	assert.NilError(tt,err)
 	var t,ut Tuning
-	ut,err = CreateTuningFromSCL(sf)
+	ut,err = TuningFromSCL(sf)
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 	for i := 0; i < 128; i++ {
 		assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(i), ut.LogScaledFrequencyForMidiNote(i)), "i:%d",i)
@@ -648,14 +648,14 @@ func TestBuiltinGeneratorsED317(tt *testing.T) {
 func TestBuiltinGeneratorsED417(tt *testing.T) {
 	var err error
 	var s,sf Scale
-	s,err = evenDivisionOfSpanByM(4,17)
+	s,err = ScaleEvenDivisionOfSpanByM(4,17)
 	assert.NilError(tt,err)
-	sf,err = ReadSCLFile(testFile("ED4-17.scl"))
+	sf,err = ScaleFromSCLFile(testFile("ED4-17.scl"))
 	assert.NilError(tt,err)
 	var t,ut Tuning
-	ut,err = CreateTuningFromSCL(sf)
+	ut,err = TuningFromSCL(sf)
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 	for i := 0; i < 128; i++ {
 		assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(i), ut.LogScaledFrequencyForMidiNote(i)), "i:%d",i)
@@ -672,12 +672,12 @@ func TestBuiltinGeneratorsRandonEDNMConstraints(tt *testing.T) {
 		var t Tuning
 		var err error
 
-		s,err = evenDivisionOfSpanByM(span, m)
+		s,err = ScaleEvenDivisionOfSpanByM(span, m)
 		assert.NilError(tt, err)
 		assert.Equal(tt,s.Count, m)
 		assert.Check(tt,len(s.RawText) > 1)
 
-		t,err = CreateTuningFromSCL(s)
+		t,err = TuningFromSCL(s)
 		assert.NilError(tt, err)
 		assert.Equal(tt, "", approxEqual(1e-7, t.FrequencyForMidiNoteScaledByMidi0(60) * float64(span),
 			t.FrequencyForMidiNoteScaledByMidi0(60+m)), "i:%v,span:%v,m:%v",i,span,m)
@@ -692,18 +692,18 @@ func TestBuiltinGeneratorsRandonEDNMConstraints(tt *testing.T) {
 // Built in Generators - EDMN Errors
 func TestBuiltinGeneratorsEDMNError(tt *testing.T) {
 	var err error
-	_,err = evenDivisionOfSpanByM(0, 12)
+	_,err = ScaleEvenDivisionOfSpanByM(0, 12)
 	assert.ErrorContains(tt,err,"Span must be a positive number")
-	_,err = evenDivisionOfSpanByM(2, 0)
+	_,err = ScaleEvenDivisionOfSpanByM(2, 0)
 	assert.ErrorContains(tt,err,"must divide the period into at least one step")
-	_,err = evenDivisionOfSpanByM(0, 0)
+	_,err = ScaleEvenDivisionOfSpanByM(0, 0)
 	assert.ErrorContains(tt,err,"Span must be a positive number")
 
-	_,err = evenDivisionOfSpanByM(-1, 12)
+	_,err = ScaleEvenDivisionOfSpanByM(-1, 12)
 	assert.ErrorContains(tt,err,"Span must be a positive number")
-	_,err = evenDivisionOfSpanByM(2, -1)
+	_,err = ScaleEvenDivisionOfSpanByM(2, -1)
 	assert.ErrorContains(tt,err,"must divide the period into at least one step")
-	_,err = evenDivisionOfSpanByM(-1, -1)
+	_,err = ScaleEvenDivisionOfSpanByM(-1, -1)
 	assert.ErrorContains(tt,err,"Span must be a positive number")
 }
 
@@ -712,7 +712,7 @@ func TestBuiltinGeneratorsEDMNError(tt *testing.T) {
 // Dos Line Endings and Blanks - SCL
 func TestDosSCL(tt *testing.T) {
 	var err error
-	_,err = ReadSCLFile(testFile("12-intune-dosle.scl"))
+	_,err = ScaleFromSCLFile(testFile("12-intune-dosle.scl"))
 	assert.NilError(tt,err)
 }
 
@@ -720,7 +720,7 @@ func TestDosSCL(tt *testing.T) {
 func TestDosDosEndings(tt *testing.T) {
 	var err error
 	var s Scale
-	s,err = ReadSCLFile(testFile("31edo_dos_lineends.scl"))
+	s,err = ScaleFromSCLFile(testFile("31edo_dos_lineends.scl"))
 	assert.NilError(tt,err)
 	assert.Equal(tt, s.Count, 31)
 	// should not include \r:
@@ -728,7 +728,7 @@ func TestDosDosEndings(tt *testing.T) {
 
 	// the parsing should ive the same floatvalues independent of crlf status obviously
 	var q Scale
-	q,err = ReadSCLFile(testFile("31edo.scl"))
+	q,err = ScaleFromSCLFile(testFile("31edo.scl"))
 	assert.NilError(tt,err)
 	for i:= 0; i<q.Count; i++ {
 		assert.Equal(tt, q.Tones[i].FloatValue, s.Tones[i].FloatValue)
@@ -739,7 +739,7 @@ func TestDosDosEndings(tt *testing.T) {
 func TestDosKBM(tt *testing.T) {
 	var err error
 	var k KeyboardMapping
-	k,err = ReadKBMFile(testFile("empty-note69-dosle.kbm"))
+	k,err = KeyboardMappingFromKBMFile(testFile("empty-note69-dosle.kbm"))
 	assert.NilError(tt,err)
 	assert.Equal(tt, k.TuningConstantNote, 69)
 }
@@ -747,42 +747,43 @@ func TestDosKBM(tt *testing.T) {
 // Dos Line Endings and Blanks - Blank SCL
 func TestDosBlankSCL(tt *testing.T) {
 	var err error
-	_,err = ParseSCLData("")
+	_,err = ScaleFromSCLString("")
 	assert.ErrorContains(tt,err, "Incomplete SCL")
 
 	// but what if we do construct a bad one?
 	var s Scale
 	s.Count = 0
 	s.Tones = nil
-	_,err = CreateTuningFromSCL(s)
+	_,err = TuningFromSCL(s)
 	assert.ErrorContains(tt,err, "Your scale provided 0 notes")
 }
 
-// Tone API - Valid Tones
+// tone API - Valid Tones
 func TestToneAPIValid(tt *testing.T) {
 	var err error
-	var t Tone
+	var t tone
 	t,err = toneFromString("130.0",1)
 	assert.NilError(tt,err)
-	assert.Equal(tt, t.Type, ToneCents)
+	assert.Equal(tt, t.Type, toneCents)
 	assert.Equal(tt, t.Cents, 130.0)
 	assert.Equal(tt, t.FloatValue, 130.0 / 1200.0 + 1.0)
 
 	t,err = toneFromString("7/2",1)
 	assert.NilError(tt,err)
-	assert.Equal(tt, t.Type, ToneRatio)
+	assert.Equal(tt, t.Type, toneRatio)
 	assert.Equal(tt, t.RatioN, 7)
 	assert.Equal(tt, t.RatioD, 2)
 	assert.Equal(tt, t.FloatValue, math.Log( 7.0 / 2.0 ) / math.Log( 2.0 ) + 1.0)
 
 	t,err = toneFromString("3",1)
 	assert.NilError(tt,err)
-	assert.Equal(tt, t.Type, ToneRatio)
+	assert.Equal(tt, t.Type, toneRatio)
 	assert.Equal(tt, t.RatioN, 3)
 	assert.Equal(tt, t.RatioD, 1)
 	assert.Equal(tt, t.FloatValue, math.Log( 3.0 / 1.0 ) / math.Log( 2.0 ) + 1.0)
 }
-// Tone API - Error Tones
+
+// tone API - Error Tones
 func TestToneAPIErrors(tt *testing.T) {
 	var err error
 	_,err = toneFromString("Not a number", 1)
@@ -800,7 +801,7 @@ func TestToneAPIErrors(tt *testing.T) {
 func TestScalePositionUntuned(tt *testing.T) {
 	var t Tuning
 	var err error
-	t,err = CreateStandardTuning()
+	t,err = TuningEvenStandard()
 	assert.NilError(tt,err)
 	for i:= 0; i < 127; i++ {
 		assert.Equal(tt, t.ScalePositionForMidiNote(i), i%12, "i:%d",i)
@@ -812,9 +813,9 @@ func TestScalePositionUntunedMapped(tt *testing.T) {
 	{
 		var t Tuning
 		var k KeyboardMapping
-		k, err = startScaleOnAndTuneNoteTo(60, 69, 440.0)
+		k, err = KeyboardMappingStartScaleOnAndTuneNoteTo(60, 69, 440.0)
 		assert.NilError(tt, err)
-		t, err = CreateTuningFromKBM(k)
+		t, err = TuningFromKBM(k)
 		assert.NilError(tt, err)
 		for i := 0; i < 127; i++ {
 			assert.Equal(tt, t.ScalePositionForMidiNote(i), i%12, "i:%d", i)
@@ -824,9 +825,9 @@ func TestScalePositionUntunedMapped(tt *testing.T) {
 		n := int(rand.Uint32() % 60 + 30)
 		var t Tuning
 		var k KeyboardMapping
-		k, err = startScaleOnAndTuneNoteTo(n, 69, 440.0)
+		k, err = KeyboardMappingStartScaleOnAndTuneNoteTo(n, 69, 440.0)
 		assert.NilError(tt, err)
-		t,err = CreateTuningFromKBM(k)
+		t,err = TuningFromKBM(k)
 		assert.NilError(tt, err)
 		for i := 0; i < 127; i++ {
 			assert.Equal(tt, t.ScalePositionForMidiNote(i), ( i + 12 - n % 12 ) % 12, "n:%d,i:%d", n,i)
@@ -836,9 +837,9 @@ func TestScalePositionUntunedMapped(tt *testing.T) {
 		// Check whitekeys
 		var t Tuning
 		var k KeyboardMapping
-		k,err = ReadKBMFile(testFile("mapping-whitekeys-c261.kbm"))
+		k,err = KeyboardMappingFromKBMFile(testFile("mapping-whitekeys-c261.kbm"))
 		assert.NilError(tt, err)
-		t,err = CreateTuningFromKBM(k)
+		t,err = TuningFromKBM(k)
 		assert.NilError(tt,err)
 		maps := map[int]int{
 			0:  0,
@@ -866,9 +867,9 @@ func TestScalePositionTunedUnmapped(tt *testing.T) {
 	{
 		var t Tuning
 		var s Scale
-		s, err = ReadSCLFile(testFile("zeus22.scl"))
+		s, err = ScaleFromSCLFile(testFile("zeus22.scl"))
 		assert.NilError(tt, err)
-		t, err = CreateTuningFromSCL(s)
+		t, err = TuningFromSCL(s)
 		assert.NilError(tt, err)
 		off := 60
 		for off > 0 {
@@ -882,9 +883,9 @@ func TestScalePositionTunedUnmapped(tt *testing.T) {
 	{
 		var t Tuning
 		var s Scale
-		s, err = ReadSCLFile(testFile("6-exact.scl"))
+		s, err = ScaleFromSCLFile(testFile("6-exact.scl"))
 		assert.NilError(tt, err)
-		t, err = CreateTuningFromSCL(s)
+		t, err = TuningFromSCL(s)
 		assert.NilError(tt, err)
 		off := 60
 		for off > 0 {
@@ -905,11 +906,11 @@ func TestScalePositionTunedMapped(tt *testing.T) {
 	for j := 0; j < 100; j++ {
 		n := int(rand.Uint32() % 60 + 30)
 
-		s, err = ReadSCLFile(testFile("zeus22.scl"))
+		s, err = ScaleFromSCLFile(testFile("zeus22.scl"))
 		assert.NilError(tt, err)
-		k,err  = startScaleOnAndTuneNoteTo(n, 69, 440.0)
+		k,err  = KeyboardMappingStartScaleOnAndTuneNoteTo(n, 69, 440.0)
 		assert.NilError(tt, err)
-		t, err = CreateTuningFromSCLAndKBM(s,k)
+		t, err = TuningFromSCLAndKBM(s,k)
 		assert.NilError(tt, err)
 		off := n
 		for off > 0 {
@@ -927,9 +928,9 @@ func TestDefaultKBMHasRightBase(tt *testing.T) {
 		var s Scale
 		var t Tuning
 		var err error
-		s,err = ReadSCLFile(testFile(fname))
+		s,err = ScaleFromSCLFile(testFile(fname))
 		assert.NilError(tt,err,fname)
-		t,err = CreateTuningFromSCL(s)
+		t,err = TuningFromSCL(s)
 		assert.NilError(tt,err,fname)
 		assert.Equal(tt, "", approxEqual(1e-6, t.FrequencyForMidiNoteScaledByMidi0(60), 32.0), fname)
 	}
@@ -941,11 +942,11 @@ func TestDiffPeriods32EdoMeanTone(tt *testing.T) {
 	var k KeyboardMapping
 	var t Tuning
 	var err error
-	s,err = ReadSCLFile(testFile("31edo.scl"))
+	s,err = ScaleFromSCLFile(testFile("31edo.scl"))
 	assert.NilError(tt,err)
-	k,err = ReadKBMFile(testFile("31edo_meantone.kbm"))
+	k,err = KeyboardMappingFromKBMFile(testFile("31edo_meantone.kbm"))
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCLAndKBM(s,k)
+	t,err = TuningFromSCLAndKBM(s,k)
 	assert.NilError(tt,err)
 
 	assert.Equal(tt, "", approxEqual(1e-6, t.FrequencyForMidiNote(69), 440.0))
@@ -958,9 +959,9 @@ func TestDiffPeriodsPerfect5thUnmapped(tt *testing.T) {
 	var s Scale
 	var t Tuning
 	var err error
-	s,err = ReadSCLFile(testFile("12-ET-P5.scl"))
+	s,err = ScaleFromSCLFile(testFile("12-ET-P5.scl"))
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCL(s)
+	t,err = TuningFromSCL(s)
 	assert.NilError(tt,err)
 
 	for i := 60-36; i<127; i+=12 {
@@ -977,11 +978,11 @@ func TestDiffPeriodsPerfect5th07Mapping(tt *testing.T) {
 	var k KeyboardMapping
 	var t Tuning
 	var err error
-	s,err = ReadSCLFile(testFile("12-ET-P5.scl"))
+	s,err = ScaleFromSCLFile(testFile("12-ET-P5.scl"))
 	assert.NilError(tt,err)
-	k,err = ReadKBMFile(testFile("mapping-n60-fifths.kbm"))
+	k,err = KeyboardMappingFromKBMFile(testFile("mapping-n60-fifths.kbm"))
 	assert.NilError(tt,err)
-	t,err = CreateTuningFromSCLAndKBM(s,k)
+	t,err = TuningFromSCLAndKBM(s,k)
 	assert.NilError(tt,err)
 
 	for i := 60; i<70; i+=2 {

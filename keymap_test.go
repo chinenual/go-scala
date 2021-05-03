@@ -9,7 +9,7 @@ import (
 
 // Loading tuning files - KBM File from text
 func TestKeymapFromString(t *testing.T) {
-	kbm,err := ParseKBMData(`! A scale file
+	kbm,err := KeyboardMappingFromKBMString(`! A scale file
 ! with zero size
 0
 ! spanning the keybaord
@@ -37,10 +37,10 @@ func TestReparseKBMRawText(tt *testing.T) {
 	var k KeyboardMapping
 	var kparse KeyboardMapping
 	var err error
-	k, err = standardKeyboardMapping()
+	k, err = KeyboardMappingStandard()
 	assert.NilError(tt, err)
 
-	kparse, err = ParseKBMData(k.RawText)
+	kparse, err = KeyboardMappingFromKBMString(k.RawText)
 	assert.NilError(tt, err)
 
 	assert.Equal(tt, k.Count, kparse.Count)
@@ -62,7 +62,7 @@ func TestBuiltinGeneratorsKBMGenerator(tt *testing.T) {
 		var k KeyboardMapping
 		var err error
 
-		k, err = tuneNoteTo(n, fr)
+		k, err = KeyboardMappingTuneNoteTo(n, fr)
 		assert.NilError(tt, err)
 		assert.Equal(tt, k.TuningConstantNote, n)
 		assert.Equal(tt, k.TuningFrequency, fr)

@@ -8,7 +8,7 @@ import (
 
 // Loading tuning files - Load a 12 tone standard tuning
 func TestLoadStandardTuning(t *testing.T) {
-	scale,err := ReadSCLFile(testFile("12-intune.scl"))
+	scale,err := ScaleFromSCLFile(testFile("12-intune.scl"))
 	assert.NilError(t, err)
 	assert.Equal(t, scale.Count, 12)
 	// FIXME - write a lot more here obviously
@@ -16,7 +16,7 @@ func TestLoadStandardTuning(t *testing.T) {
 
 // Loading tuning files - Load a 12 tone standard tuning with no description
 func TestLoadStandardTuningNoDesc(t *testing.T) {
-	scale,err := ReadSCLFile(testFile("12-intune-nodesc.scl"))
+	scale,err := ScaleFromSCLFile(testFile("12-intune-nodesc.scl"))
 	assert.NilError(t, err)
 	assert.Equal(t, scale.Count, 12)
 	// FIXME - write a lot more here obviously

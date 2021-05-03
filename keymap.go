@@ -32,8 +32,8 @@ type KeyboardMapping struct {
 	Name               string
 }
 
-// ReadKBMStream returns a KeyboardMapping from a KBM input stream
-func ReadKBMStream(rdr io.Reader) (kbm KeyboardMapping, err error) {
+// KeyboardMappingFromKBMStream returns a KeyboardMapping from a KBM input stream
+func KeyboardMappingFromKBMStream(rdr io.Reader) (kbm KeyboardMapping, err error) {
 	type stateType int
 	const (
 		mapSize stateType = iota
@@ -154,15 +154,15 @@ func ReadKBMStream(rdr io.Reader) (kbm KeyboardMapping, err error) {
 	return
 }
 
-// ReadKBMFile returns a KeyboardMapping from a KBM file name
-func ReadKBMFile(fname string) (kbm KeyboardMapping, err error) {
+// KeyboardMappingFromKBMFile returns a KeyboardMapping from a KBM file name
+func KeyboardMappingFromKBMFile(fname string) (kbm KeyboardMapping, err error) {
 	var file *os.File
 	if file, err = os.Open(fname); err != nil {
 		err = errors.Wrapf(err, "Unable to open file '%s'", fname)
 		return
 	}
 	defer file.Close()
-	if kbm, err = ReadKBMStream(file); err != nil {
+	if kbm, err = KeyboardMappingFromKBMStream(file); err != nil {
 		err = errors.Wrapf(err, "Unable to parse file '%s'", fname)
 		return
 	}
@@ -170,33 +170,33 @@ func ReadKBMFile(fname string) (kbm KeyboardMapping, err error) {
 	return
 }
 
-// ParseKBMData returns a KeyboardMapping from a KBM data in memory
-func ParseKBMData(kbmContents string) (kbm KeyboardMapping, err error) {
+// KeyboardMappingFromKBMString returns a KeyboardMapping from a KBM data in memory
+func KeyboardMappingFromKBMString(kbmContents string) (kbm KeyboardMapping, err error) {
 	rdr := strings.NewReader(kbmContents)
-	if kbm, err = ReadKBMStream(rdr); err != nil {
+	if kbm, err = KeyboardMappingFromKBMStream(rdr); err != nil {
 		return
 	}
 	kbm.Name = "Mapping from patch"
 	return
 }
 
-// tuneA69To creates a KeyboardMapping which keeps the midi note 69 (A4) set
+// KeyboardMappingTuneA69To creates a KeyboardMapping which keeps the midi note 69 (A4) set
 // to a constant frequency, given
-func tuneA69To(freq float64) (kbm KeyboardMapping, err error) {
-	kbm, err = tuneNoteTo(69, freq)
+func KeyboardMappingTuneA69To(freq float64) (kbm KeyboardMapping, err error) {
+	kbm, err = KeyboardMappingTuneNoteTo(69, freq)
 	return
 }
 
-// tuneNoteTo creates a KeyboardMapping which keeps the midi note given is set
+// KeyboardMappingTuneNoteTo creates a KeyboardMapping which keeps the midi note given is set
 // to a constant frequency, given
-func tuneNoteTo(midiNote int, freq float64) (kbm KeyboardMapping, err error) {
-	kbm, err = startScaleOnAndTuneNoteTo(69, midiNote, freq)
+func KeyboardMappingTuneNoteTo(midiNote int, freq float64) (kbm KeyboardMapping, err error) {
+	kbm, err = KeyboardMappingStartScaleOnAndTuneNoteTo(69, midiNote, freq)
 	return
 }
 
-// startScaleOnAndTuneNoteTo generates a KBM where scaleStart is the note 0
+// KeyboardMappingStartScaleOnAndTuneNoteTo generates a KBM where scaleStart is the note 0
 // of the scale, where midiNote is the tuned note, and where feq is the frequency
-func startScaleOnAndTuneNoteTo(scaleStart int, midiNote int, freq float64) (kbm KeyboardMapping, err error) {
+func KeyboardMappingStartScaleOnAndTuneNoteTo(scaleStart int, midiNote int, freq float64) (kbm KeyboardMapping, err error) {
 	buf := "! Automatically generated mapping, tuning note " + strconv.Itoa(midiNote) + " to " + fmt.Sprintf("%f", freq) + " Hz\n"
 	buf += "!\n"
 	buf += "! Size of map\n"
@@ -213,13 +213,13 @@ func startScaleOnAndTuneNoteTo(scaleStart int, midiNote int, freq float64) (kbm 
 	buf += "! Scale degree for formal octave. This is am empty mapping, so:\n"
 	buf += "0\n"
 	buf += "! Mapping. This is an empty mapping so list no keys\n"
-	kbm, err = ParseKBMData(buf)
+	kbm, err = KeyboardMappingFromKBMString(buf)
 	return
 }
 
-func standardKeyboardMapping() (kbm KeyboardMapping, err error) {
+func KeyboardMappingStandard() (kbm KeyboardMapping, err error) {
 	freq := Midi0Freq * 32.0
-	kbm,err = ParseKBMData(`! Default KBM file
+	kbm,err = KeyboardMappingFromKBMString(`! Default KBM file
 0
 0
 127

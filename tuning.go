@@ -55,7 +55,7 @@ type Tuning interface {
 	KeyboardMapping() KeyboardMapping
 }
 
-type TuningImpl struct {
+type tuningImpl struct {
 	scale              Scale
 	keyboardMapping    KeyboardMapping
 	lptable            [numPrecomputed]float64
@@ -65,49 +65,49 @@ type TuningImpl struct {
 
 const numPrecomputed = 512
 
-// CreateStandardTuning constructs a tuning with even temperament and standard mapping
-func CreateStandardTuning() (t Tuning, err error) {
+// TuningEvenStandard constructs a tuning with even temperament and standard mapping
+func TuningEvenStandard() (t Tuning, err error) {
 	var k KeyboardMapping
 	var s Scale
-	if k, err = standardKeyboardMapping(); err != nil {
+	if k, err = KeyboardMappingStandard(); err != nil {
 		return
 	}
-	if s, err = evenTemperment12NoteScale(); err != nil {
+	if s, err = ScaleEvenTemperment12NoteScale(); err != nil {
 		return
 	}
-	if t, err = CreateTuningFromSCLAndKBM(s, k); err != nil {
+	if t, err = TuningFromSCLAndKBM(s, k); err != nil {
 		return
 	}
 	return
 }
 
-// CreateTuningFromSCL constructs a tuning for a particular scale.
-func CreateTuningFromSCL(s Scale) (t Tuning, err error) {
+// TuningFromSCL constructs a tuning for a particular scale.
+func TuningFromSCL(s Scale) (t Tuning, err error) {
 	var k KeyboardMapping
-	if k, err = standardKeyboardMapping(); err != nil {
+	if k, err = KeyboardMappingStandard(); err != nil {
 		return
 	}
-	if t, err = CreateTuningFromSCLAndKBM(s, k); err != nil {
+	if t, err = TuningFromSCLAndKBM(s, k); err != nil {
 		return
 	}
 	return
 }
 
-// CreateTuningFromKBM constructs a tuning for a particular mapping.
-func CreateTuningFromKBM(k KeyboardMapping) (t Tuning, err error) {
+// TuningFromKBM constructs a tuning for a particular mapping.
+func TuningFromKBM(k KeyboardMapping) (t Tuning, err error) {
 	var s Scale
-	if s, err = evenTemperment12NoteScale(); err != nil {
+	if s, err = ScaleEvenTemperment12NoteScale(); err != nil {
 		return
 	}
-	if t, err = CreateTuningFromSCLAndKBM(s, k); err != nil {
+	if t, err = TuningFromSCLAndKBM(s, k); err != nil {
 		return
 	}
 	return
 }
 
-// CreateTuningFromSCLAndKBM constructs a tuning for a particular scale and mapping
-func CreateTuningFromSCLAndKBM(s Scale, k KeyboardMapping) (tuning Tuning, err error) {
-	var t TuningImpl
+// TuningFromSCLAndKBM constructs a tuning for a particular scale and mapping
+func TuningFromSCLAndKBM(s Scale, k KeyboardMapping) (tuning Tuning, err error) {
+	var t tuningImpl
 
 	t.scale = s
 	t.keyboardMapping = k
@@ -266,7 +266,7 @@ func imax(x int, y int) int {
 // note. In standard tuning, FrequencyForMidiNote(69) will be 440
 // and frequencyForMidiNote(60) will be 261.62 - the standard frequencies
 // for A and middle C.
-func (t TuningImpl) FrequencyForMidiNote(mn int) float64 {
+func (t tuningImpl) FrequencyForMidiNote(mn int) float64 {
 	mni := imin(imax(0, mn+256), numPrecomputed-1)
 	return t.ptable[mni] * Midi0Freq
 }
@@ -281,7 +281,7 @@ func (t TuningImpl) FrequencyForMidiNote(mn int) float64 {
 // Depending on your internal pitch model, one of these three methods should allow you
 // to calibrate your oscillators to the appropriate frequency based on the midi note
 // at hand.
-func (t TuningImpl) FrequencyForMidiNoteScaledByMidi0(mn int) float64 {
+func (t tuningImpl) FrequencyForMidiNoteScaledByMidi0(mn int) float64 {
 	mni := imin(imax(0, mn+256), numPrecomputed-1)
 	return t.ptable[mni]
 }
@@ -295,7 +295,7 @@ func (t TuningImpl) FrequencyForMidiNoteScaledByMidi0(mn int) float64 {
 // Depending on your internal pitch model, one of these three methods should allow you
 // to calibrate your oscillators to the appropriate frequency based on the midi note
 // at hand.
-func (t TuningImpl) LogScaledFrequencyForMidiNote(mn int) float64 {
+func (t tuningImpl) LogScaledFrequencyForMidiNote(mn int) float64 {
 	mni := imin(imax(0, mn+256), numPrecomputed-1)
 	return t.lptable[mni]
 }
@@ -303,15 +303,15 @@ func (t TuningImpl) LogScaledFrequencyForMidiNote(mn int) float64 {
 // ScalePositionForMidiNote returns the space in the logical scale. Note 0 is the root.
 // It has a maximum value of count-1. Note that SCL files omit the root internally and so
 // this logical scale position is off by 1 from the index in the tones array of the Scale data.
-func (t TuningImpl) ScalePositionForMidiNote(mn int) int {
+func (t tuningImpl) ScalePositionForMidiNote(mn int) int {
 	mni := imin(imax(0, mn+256), numPrecomputed-1)
 	return t.scalePositionTable[mni]
 }
 
-func (t TuningImpl) Scale() Scale {
+func (t tuningImpl) Scale() Scale {
 	return t.scale
 }
 
-func (t TuningImpl) KeyboardMapping() KeyboardMapping {
+func (t tuningImpl) KeyboardMapping() KeyboardMapping {
 	return t.keyboardMapping
 }
