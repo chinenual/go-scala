@@ -639,7 +639,7 @@ func TestBuiltinGeneratorsED2(tt *testing.T) {
 }
 
 // Built in Generators - ED3-17
-func disable_TestBuiltinGeneratorsED317(tt *testing.T) {
+func TestBuiltinGeneratorsED317(tt *testing.T) {
 	var err error
 	var s, sf Scale
 	s, err = ScaleEvenDivisionOfSpanByM(3, 17)
@@ -657,7 +657,7 @@ func disable_TestBuiltinGeneratorsED317(tt *testing.T) {
 }
 
 // Built in Generators - ED4-17
-func disable_TestBuiltinGeneratorsED417(tt *testing.T) {
+func TestBuiltinGeneratorsED417(tt *testing.T) {
 	var err error
 	var s, sf Scale
 	s, err = ScaleEvenDivisionOfSpanByM(4, 17)
@@ -675,7 +675,7 @@ func disable_TestBuiltinGeneratorsED417(tt *testing.T) {
 }
 
 // Built in Generators - Constraints on random EDN-M
-func disable_TestBuiltinGeneratorsRandonEDNMConstraints(tt *testing.T) {
+func TestBuiltinGeneratorsRandonEDNMConstraints(tt *testing.T) {
 	for i := 0; i < 100; i++ {
 		span := int(rand.Uint32()%7 + 2)
 		m := int(rand.Uint32()%50 + 3)
