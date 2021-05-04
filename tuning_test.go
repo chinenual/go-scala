@@ -617,7 +617,7 @@ func TestBadFilesBadKBM(tt *testing.T) {
 }
 
 // Built in Generators - ED2
-func disable_TestBuiltinGeneratorsED2(tt *testing.T) {
+func TestBuiltinGeneratorsED2(tt *testing.T) {
 	var err error
 	var s Scale
 	s, err = ScaleEvenDivisionOfSpanByM(2, 12)
@@ -629,7 +629,11 @@ func disable_TestBuiltinGeneratorsED2(tt *testing.T) {
 	assert.NilError(tt, err)
 	t, err = TuningFromSCL(s)
 	assert.NilError(tt, err)
+	//fmt.Printf("t: %#v\n\nut: %#v\n",t,ut)
 	for i := 0; i < 128; i++ {
+		//fmt.Printf("i:%v, tl:%v tf:%v ul:%v uf:%v\n", i,
+		//	t.LogScaledFrequencyForMidiNote(i), t.FrequencyForMidiNote(i),
+		//	ut.LogScaledFrequencyForMidiNote(i), ut.FrequencyForMidiNote(i))
 		assert.Equal(tt, "", approxEqual(1e-6, t.LogScaledFrequencyForMidiNote(i), ut.LogScaledFrequencyForMidiNote(i)), "i:%d", i)
 	}
 }

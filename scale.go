@@ -235,7 +235,7 @@ func ScaleEvenDivisionOfSpanByM(span int, m int) (scale Scale, err error) {
 
 	topCents := 1200.0 * math.Log(float64(span)) / math.Log(2.0)
 	dCents := topCents / float64(m)
-	for i := 0; i < m; i++ {
+	for i := 1; i < m; i++ {
 		buf += fmt.Sprintf("%f\n", dCents*float64(i))
 	}
 	buf += strconv.Itoa(span) + "/1\n"
