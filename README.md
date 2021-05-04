@@ -13,13 +13,6 @@ This is mostly a copy of that library, but with some name changes and refactorin
 $ go get github.com/chinenual/go-scala
 ```
 
-## Building and testing the library:
-
-```shell
-$ go get -v -t -d ./...
-$ go build
-$ go test
-```
 ## Example
 
 An example of using the API:
@@ -35,4 +28,12 @@ t,_ := scala.TuningFromSCLAndKBM(s,k)
 fmt.Printf("The frequency of C4 and A4 are %v and %v\n",
     t.FrequencyForMidiNote(60)
     t.FrequencyForMidiNote(69))
+```
+
+## Building and testing the library:
+
+```shell
+$ go get -v -t -d ./...
+$ go build
+$ go test
 ```
