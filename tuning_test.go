@@ -370,7 +370,7 @@ func TestSampleScalesCarlosAlpha(tt *testing.T) {
 }
 
 // Remapping frequency with non-12-length scales - 6 exact
-func disable_TestRemappingFreqWithNon12Scales6Exact(tt *testing.T) {
+func TestRemappingFreqWithNon12Scales6Exact(tt *testing.T) {
 	var s Scale
 	var err error
 	var t Tuning

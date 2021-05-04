@@ -116,7 +116,7 @@ func KeyboardMappingFromKBMStream(rdr io.Reader) (kbm KeyboardMapping, err error
 			if kbm.TuningFrequency, err = asFloat(); err != nil {
 				return
 			}
-			kbm.TuningPitch = kbm.TuningFrequency / 8.17579891564371
+			kbm.TuningPitch = kbm.TuningFrequency / midi0Freq
 		case degree:
 			if kbm.OctaveDegrees, err = asInt(); err != nil {
 				return
@@ -190,7 +190,7 @@ func KeyboardMappingTuneA69To(freq float64) (kbm KeyboardMapping, err error) {
 // KeyboardMappingTuneNoteTo creates a KeyboardMapping which keeps the midi note given is set
 // to a constant frequency, given
 func KeyboardMappingTuneNoteTo(midiNote int, freq float64) (kbm KeyboardMapping, err error) {
-	kbm, err = KeyboardMappingStartScaleOnAndTuneNoteTo(69, midiNote, freq)
+	kbm, err = KeyboardMappingStartScaleOnAndTuneNoteTo(60, midiNote, freq)
 	return
 }
 
