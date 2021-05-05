@@ -1,3 +1,11 @@
+// Package scala provides routines to parse Scala scale (SCM) and 
+// keyboard mapping (KBM) files and compute the resulting frequencies 
+// for MIDI notes. 
+//
+// The Tuning type is the primary place where you will interact with 
+// this library.  It is constructed for a scale and mapping and then 
+// gives you the ability to determine frequencies across and beyond 
+// the MIDI keyboard. 
 package scala
 
 import (
