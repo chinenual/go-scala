@@ -19,7 +19,7 @@ An example of using the API:
 
 ```go
 import (
-  "github.com/chinenual/go-scala" scala
+  "github.com/chinenual/go-scala"
 )
 ...
 s,_ := scala.ScaleFromSCLFile("./my-scale.scl")
