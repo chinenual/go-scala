@@ -768,32 +768,32 @@ func TestDosBlankSCL(tt *testing.T) {
 	assert.ErrorContains(tt, err, "Your scale provided 0 notes")
 }
 
-// tone API - Valid Tones
+// Tone API - Valid Tones
 func TestToneAPIValid(tt *testing.T) {
 	var err error
-	var t tone
+	var t Tone
 	t, err = toneFromString("130.0", 1)
 	assert.NilError(tt, err)
-	assert.Equal(tt, t.Type, toneCents)
+	assert.Equal(tt, t.Type, ToneCents)
 	assert.Equal(tt, t.Cents, 130.0)
 	assert.Equal(tt, t.FloatValue, 130.0/1200.0+1.0)
 
 	t, err = toneFromString("7/2", 1)
 	assert.NilError(tt, err)
-	assert.Equal(tt, t.Type, toneRatio)
+	assert.Equal(tt, t.Type, ToneRatio)
 	assert.Equal(tt, t.RatioN, 7)
 	assert.Equal(tt, t.RatioD, 2)
 	assert.Equal(tt, t.FloatValue, math.Log(7.0/2.0)/math.Log(2.0)+1.0)
 
 	t, err = toneFromString("3", 1)
 	assert.NilError(tt, err)
-	assert.Equal(tt, t.Type, toneRatio)
+	assert.Equal(tt, t.Type, ToneRatio)
 	assert.Equal(tt, t.RatioN, 3)
 	assert.Equal(tt, t.RatioD, 1)
 	assert.Equal(tt, t.FloatValue, math.Log(3.0/1.0)/math.Log(2.0)+1.0)
 }
 
-// tone API - Error Tones
+// Tone API - Error Tones
 func TestToneAPIErrors(tt *testing.T) {
 	var err error
 	_, err = toneFromString("Not a number", 1)
@@ -950,7 +950,7 @@ func TestDefaultKBMHasRightBase(tt *testing.T) {
 	}
 }
 
-// Different KBM period from Scale period - 31Edo with mean tone mapping
+// Different KBM period from Scale period - 31Edo with mean Tone mapping
 func TestDiffPeriods32EdoMeanTone(tt *testing.T) {
 	var s Scale
 	var k KeyboardMapping

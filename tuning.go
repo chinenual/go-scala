@@ -101,7 +101,7 @@ func TuningFromSCL(s Scale) (t Tuning, err error) {
 	return
 }
 
-// TuningFromKBM constructs a tuning for a particular mapping (12 tone even temperament)
+// TuningFromKBM constructs a tuning for a particular mapping (12 Tone even temperament)
 func TuningFromKBM(k KeyboardMapping) (t Tuning, err error) {
 	var s Scale
 	if s, err = ScaleEvenTemperment12NoteScale(); err != nil {

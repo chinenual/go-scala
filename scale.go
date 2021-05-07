@@ -13,19 +13,19 @@ import (
 
 const midi0Freq = 8.17579891564371 // or 440.0 * pow( 2.0, - (69.0/12.0 ) )
 
-type toneType int
+type ToneType int
 
 const (
-	toneCents toneType = iota
-	toneRatio
+	ToneCents ToneType = iota
+	ToneRatio
 )
 
-// A tone is a single entry in an SCL file. It is expressed either in cents or in
+// A Tone is a single entry in an SCL file. It is expressed either in cents or in
 // a ratio, as described in the SCL documentation.
 //
 // In most normal use, you will not use this interface, and it will be internal to a Scale
-type tone struct {
-	Type       toneType
+type Tone struct {
+	Type       ToneType
 	Cents      float64
 	RatioD     int
 	RatioN     int
@@ -45,19 +45,19 @@ type Scale struct {
 	Description string // The description in the SCL file. Informational only
 	RawText     string // The raw text of the SCL file used to create this Scale
 	Count       int    // The number of tones.
-	Tones       []tone // The tones
+	Tones       []Tone // The tones
 }
 
-func toneFromString(line string, lineno int) (tone tone, err error) {
+func toneFromString(line string, lineno int) (tone Tone, err error) {
 	if strings.Contains(line, ".") {
-		tone.Type = toneCents
+		tone.Type = ToneCents
 		if tone.Cents, err = strconv.ParseFloat(strings.TrimSpace(line), 64); err != nil {
 			err = errors.Wrapf(err, "Error parsing scale cent: \"%s\", line %d", line, lineno)
 			return
 		}
 	} else {
 		var v int64
-		tone.Type = toneRatio
+		tone.Type = ToneRatio
 		split := strings.Split(line, "/")
 		if split != nil && len(split) == 1 {
 			if v, err = strconv.ParseInt(strings.TrimSpace(split[0]), 10, 32); err != nil {
@@ -139,7 +139,7 @@ func ScaleFromSCLStream(rdr io.Reader) (scale Scale, err error) {
 			scale.Count = int(v)
 			state = readNote
 		case readNote:
-			var tone tone
+			var tone Tone
 			if tone, err = toneFromString(line, lineno); err != nil {
 				return
 			}
@@ -193,9 +193,9 @@ func ScaleFromSCLString(sclContents string) (scale Scale, err error) {
 // ScaleEvenTemperment12NoteScale provides a utility scale which is
 // the "standard tuning" scale
 func ScaleEvenTemperment12NoteScale() (scale Scale, err error) {
-	if scale, err = ScaleFromSCLString(`! 12 tone Equal Temperament.scl
+	if scale, err = ScaleFromSCLString(`! 12 Tone Equal Temperament.scl
 !
-12 tone Equal Temperament | ED2-12 - Equal division of harmonic 2 into 12 parts
+12 Tone Equal Temperament | ED2-12 - Equal division of harmonic 2 into 12 parts
  12
 !
  100.00000
