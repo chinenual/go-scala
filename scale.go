@@ -91,6 +91,7 @@ func toneFromString(line string, lineno int) (tone Tone, err error) {
 		tone.Cents = 1200 * math.Log(float64(tone.RatioN)/float64(tone.RatioD)) / math.Log(2.0)
 	}
 	tone.FloatValue = (tone.Cents / 1200.0) + 1.0
+	tone.StringRep = line
 	return
 }
 
