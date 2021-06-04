@@ -68,3 +68,17 @@ func TestBuiltinGeneratorsKBMGenerator(tt *testing.T) {
 		assert.Check(tt, len(k.RawText) > 1)
 	}
 }
+
+// Scala KBMs from Issue 42 (tuning-library #42)
+func TestIssue42KBMs(tt *testing.T) {
+	var k KeyboardMapping
+	var err error
+	k, err = KeyboardMappingFromKBMFile(testFile("128.kbm"))
+	assert.NilError(tt, err)
+	assert.Equal(tt, k.Count, 0)
+
+	k, err = KeyboardMappingFromKBMFile(testFile("piano.kbm"))
+	assert.NilError(tt, err)
+	assert.Equal(tt, k.Count, 0)
+}
+
