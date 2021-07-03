@@ -7,7 +7,9 @@
 A pure Go library to parse Scala SCL and KBM files to support microtunings
 
 A reimplementation, in Go, of the Surge team's C++ [tuning-library](https://surge-synth-team.org/tuning-library/).
-This is mostly a copy of that library, but with some name changes and refactoring to make the library idiomatic Go.
+This is mostly a copy of that library, but with some name changes and refactoring to make the library idiomatic Go.  
+
+This version of the Go library (tagged v1.2.0) corresponds to the release_1.1.0 tag of the source C++ library
 ## Usage
 
 ```shell

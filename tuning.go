@@ -1,11 +1,11 @@
-// Package scala provides routines to parse Scala scale (SCM) and 
-// keyboard mapping (KBM) files and compute the resulting frequencies 
-// for MIDI notes. 
+// Package scala provides routines to parse Scala scale (SCM) and
+// keyboard mapping (KBM) files and compute the resulting frequencies
+// for MIDI notes.
 //
-// The Tuning type is the primary place where you will interact with 
-// this library.  It is constructed for a scale and mapping and then 
-// gives you the ability to determine frequencies across and beyond 
-// the MIDI keyboard. 
+// The Tuning type is the primary place where you will interact with
+// this library.  It is constructed for a scale and mapping and then
+// gives you the ability to determine frequencies across and beyond
+// the MIDI keyboard.
 package scala
 
 import (
@@ -58,6 +58,13 @@ type Tuning interface {
 	// this logical scale position is off by 1 from the index in the tones array of the Scale data.
 	ScalePositionForMidiNote(mn int) int
 
+	// Skipped notes can either have nonsense values or interpolated values.
+	// The old API made the bad choice to have nonsense values which we retain
+	// for compatability, but this method will return a new tuning with correctly
+	// interpolated skipped notes.
+	WithSkippedNotesInterpolated() Tuning
+	IsMidiNoteMapped(mn int) bool
+
 	// For convenience, the scale and mapping used to construct this are kept as public copies
 	Scale() Scale
 	KeyboardMapping() KeyboardMapping
@@ -71,7 +78,7 @@ type tuningImpl struct {
 	scalePositionTable [numPrecomputed]int
 }
 
-const numPrecomputed = 512
+const numPrecomputed = 512  // N in the C++
 
 // TuningEvenStandard constructs a tuning with even temperament and standard mapping
 func TuningEvenStandard() (t Tuning, err error) {
@@ -257,6 +264,31 @@ func TuningFromSCLAndKBM(s Scale, k KeyboardMapping) (tuning Tuning, err error) 
 	return
 }
 
+// Skipped notes can either have nonsense values or interpolated values.
+// The old API made the bad choice to have nonsense values which we retain
+// for compatability, but this method will return a new tuning with correctly
+// interpolated skipped notes.
+func (t tuningImpl) WithSkippedNotesInterpolated() (tuning Tuning) {
+	res := t
+	for i := 1; i < numPrecomputed-1; i++ {
+		if t.scalePositionTable[i] < 0 {
+			nxt := i + 1
+			prv := i - 1
+			for prv >= 0 && t.scalePositionTable[prv] < 0 {
+				prv--
+			}
+			for nxt < numPrecomputed && t.scalePositionTable[nxt] < 0 {
+				nxt++
+			}
+			dist := float64(nxt - prv)
+			frac := float64(i - prv) / dist
+			res.lptable[i] = (1.0-frac) * t.lptable[prv] + frac * t.lptable[nxt]
+			res.ptable[i] = math.Pow(2.0, res.lptable[i])
+		}
+	}
+	return res
+}
+
 func imin(x int, y int) int {
 	if x < y {
 		return x
@@ -314,6 +346,11 @@ func (t tuningImpl) LogScaledFrequencyForMidiNote(mn int) float64 {
 func (t tuningImpl) ScalePositionForMidiNote(mn int) int {
 	mni := imin(imax(0, mn+256), numPrecomputed-1)
 	return t.scalePositionTable[mni]
+}
+
+func (t tuningImpl) IsMidiNoteMapped(mn int) bool {
+	mni := imin(imax(0, mn+256), numPrecomputed-1)
+	return t.scalePositionTable[mni] >= 0
 }
 
 func (t tuningImpl) Scale() Scale {

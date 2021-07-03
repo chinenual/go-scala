@@ -1003,3 +1003,119 @@ func TestDiffPeriodsPerfect5th07Mapping(tt *testing.T) {
 		assert.Equal(tt, "", approxEqual(1e-6, f5, f*1.5), "i:%d", i)
 	}
 }
+
+// Skipped Note API tests
+// Default Tuning skips Nothing
+func TestSkippedNoteDefaultTuningSkipsNothing(tt *testing.T) {
+	t, err := TuningEvenStandard()
+	assert.NilError(tt, err)
+	for i := 0; i < 128; i++ {
+		assert.Assert(tt, t.IsMidiNoteMapped(i), i)
+	}
+}
+
+// SCL-only Tuning skips Nothing
+func TestSkippedNoteSCLonlyTuningSkipsNothing(tt *testing.T) {
+	s, err := ScaleFromSCLFile(testFile("12-intune.scl"))
+	assert.NilError(tt, err)
+	t, err := TuningFromSCL(s)
+	assert.NilError(tt, err)
+	for i := 0; i < 128; i++ {
+		assert.Assert(tt, t.IsMidiNoteMapped(i), i)
+	}
+}
+
+// KBM-only Tuning absent skips skips Nothing
+func TestSkippedNoteKBMonlyTuningAbsentSkipsSkipsNothing(tt *testing.T) {
+	k, err := KeyboardMappingFromKBMFile(testFile("empty-note69.kbm"))
+	assert.NilError(tt, err)
+	t, err := TuningFromKBM(k)
+	assert.NilError(tt, err)
+	for i := 0; i < 128; i++ {
+		assert.Assert(tt, t.IsMidiNoteMapped(i), i)
+	}
+}
+
+// Fully Mapped
+func TestSkippedNoteFullyMapped(tt *testing.T) {
+	s, err := ScaleFromSCLFile(testFile("12-intune.scl"))
+	assert.NilError(tt, err)
+	k, err := KeyboardMappingFromKBMFile(testFile("empty-note69.kbm"))
+	assert.NilError(tt, err)
+	t, err := TuningFromSCLAndKBM(s, k)
+	assert.NilError(tt, err)
+	for i := 0; i < 128; i++ {
+		assert.Assert(tt, t.IsMidiNoteMapped(i), i)
+	}
+}
+
+// Gaps in the Maps
+func TestSkippedNoteGapsInTheMaps(tt *testing.T) {
+	s, err := ScaleFromSCLFile(testFile("12-intune.scl"))
+	assert.NilError(tt, err)
+	k, err := KeyboardMappingFromKBMFile(testFile("mapping-whitekeys-a440.kbm"))
+	assert.NilError(tt, err)
+	t, err := TuningFromSCLAndKBM(s, k)
+	assert.NilError(tt, err)
+	for k := 0; k < 128; k++ {
+		i := k % 12
+		isOn := i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11
+		assert.Assert(tt, t.IsMidiNoteMapped(k) == isOn, k)
+	}
+}
+
+// Gaps in the Maps KBM Only
+func TestSkippedNoteGapsInTheMapsKBMOnly(tt *testing.T) {
+	k, err := KeyboardMappingFromKBMFile(testFile("mapping-whitekeys-a440.kbm"))
+	assert.NilError(tt, err)
+	t, err := TuningFromKBM(k)
+	assert.NilError(tt, err)
+	for k := 0; k < 128; k++ {
+		i := k % 12
+		isOn := i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11
+		assert.Assert(tt, t.IsMidiNoteMapped(k) == isOn, k)
+	}
+}
+
+// Tuning with Gaps
+func TestSkippedNoteTuningWithGaps(tt *testing.T) {
+	s, err := ScaleFromSCLFile(testFile("12-intune.scl"))
+	assert.NilError(tt, err)
+	k, err := KeyboardMappingFromKBMFile(testFile("mapping-whitekeys-a440.kbm"))
+	assert.NilError(tt, err)
+	t, err := TuningFromSCLAndKBM(s, k)
+	assert.NilError(tt, err)
+	for k := 2; k < 128; k++ {
+		i := k % 12
+		isOn := i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11
+		var priorOn int
+		if i == 0 || i == 5 {
+			priorOn = 1
+		} else {
+			priorOn = 2
+		}
+		if isOn {
+			assert.Assert(tt, t.LogScaledFrequencyForMidiNote(k) > t.LogScaledFrequencyForMidiNote(k-priorOn), k)
+		}
+	}
+}
+
+// Tuning with Gaps and Interpolation
+func TestSkippedNoteTuningWithGapsAndInterpolation(tt *testing.T) {
+	s, err := ScaleFromSCLFile(testFile("12-intune.scl"))
+	assert.NilError(tt, err)
+	k, err := KeyboardMappingFromKBMFile(testFile("mapping-whitekeys-a440.kbm"))
+	assert.NilError(tt, err)
+	t, err := TuningFromSCLAndKBM(s, k)
+	t = t.WithSkippedNotesInterpolated()
+	assert.NilError(tt, err)
+	for k := 2; k < 128; k++ {
+		// Now we have filled in, all the APIs should be monotonic
+		i := k % 12
+		isOn := i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11
+		assert.Assert(tt, t.IsMidiNoteMapped(k) == isOn, k)
+		assert.Assert(tt, t.LogScaledFrequencyForMidiNote(k) > t.LogScaledFrequencyForMidiNote(k-1), k)
+		assert.Assert(tt, t.FrequencyForMidiNote(k) > t.FrequencyForMidiNote(k-1), k)
+		assert.Assert(tt, t.FrequencyForMidiNoteScaledByMidi0(k) > t.FrequencyForMidiNoteScaledByMidi0(k-1), k)
+	}
+}
