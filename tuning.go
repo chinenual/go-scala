@@ -60,7 +60,7 @@ type Tuning interface {
 
 	// Skipped notes can either have nonsense values or interpolated values.
 	// The old API made the bad choice to have nonsense values which we retain
-	// for compatability, but this method will return a new tuning with correctly
+	// for compatibility, but this method will return a new tuning with correctly
 	// interpolated skipped notes.
 	WithSkippedNotesInterpolated() Tuning
 	IsMidiNoteMapped(mn int) bool
@@ -266,7 +266,7 @@ func TuningFromSCLAndKBM(s Scale, k KeyboardMapping) (tuning Tuning, err error) 
 
 // Skipped notes can either have nonsense values or interpolated values.
 // The old API made the bad choice to have nonsense values which we retain
-// for compatability, but this method will return a new tuning with correctly
+// for compatibility, but this method will return a new tuning with correctly
 // interpolated skipped notes.
 func (t tuningImpl) WithSkippedNotesInterpolated() (tuning Tuning) {
 	res := t
