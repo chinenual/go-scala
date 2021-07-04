@@ -81,4 +81,3 @@ func TestIssue42KBMs(tt *testing.T) {
 	assert.NilError(tt, err)
 	assert.Equal(tt, k.Count, 0)
 }
-

@@ -78,7 +78,7 @@ type tuningImpl struct {
 	scalePositionTable [numPrecomputed]int
 }
 
-const numPrecomputed = 512  // N in the C++
+const numPrecomputed = 512 // N in the C++
 
 // TuningEvenStandard constructs a tuning with even temperament and standard mapping
 func TuningEvenStandard() (t Tuning, err error) {
@@ -281,8 +281,8 @@ func (t tuningImpl) WithSkippedNotesInterpolated() (tuning Tuning) {
 				nxt++
 			}
 			dist := float64(nxt - prv)
-			frac := float64(i - prv) / dist
-			res.lptable[i] = (1.0-frac) * t.lptable[prv] + frac * t.lptable[nxt]
+			frac := float64(i-prv) / dist
+			res.lptable[i] = (1.0-frac)*t.lptable[prv] + frac*t.lptable[nxt]
 			res.ptable[i] = math.Pow(2.0, res.lptable[i])
 		}
 	}
