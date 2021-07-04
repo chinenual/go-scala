@@ -13,10 +13,13 @@ import (
 
 const midi0Freq = 8.17579891564371 // or 440.0 * pow( 2.0, - (69.0/12.0 ) )
 
+// ToneType enum record the type of the tone (numeric "cents" or a ratio)
 type ToneType int
 
 const (
+	// ToneCents for tones that are expressed as numeric cents (e.g., 100.0)
 	ToneCents ToneType = iota
+	// ToneRatio for tones that are expressed as ratios (e.g., 3/4)
 	ToneRatio
 )
 
